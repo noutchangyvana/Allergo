@@ -74,6 +74,26 @@ def test_question_par_le_moteur(client):
     assert question(client, " ")["etat"] == "erreur"
 
 
+def test_carte_de_france(client):
+    page = client.get("/").text
+    assert 'data-vue="carte"' in page and 'id="vue-carte"' in page
+    geo = client.get("/carte/regions.geojson").json()
+    noms = {f["properties"]["nom"] for f in geo["features"]}
+    assert len(noms) == 13 and {"Île-de-France", "Corse", "Bretagne"} <= noms
+
+
+def test_couches_reliees_au_jeu_de_donnees(client):
+    """Chaque allergène cité par une couche de la carte existe bien dans les colonnes de dosage."""
+    import re
+
+    page = client.get("/").text
+    debut, fin = page.index("const COUCHES_POLLENS"), page.index("const CHEFS_LIEUX")
+    codes = set(re.findall(r'"([A-Z][a-z]{1,3}_[a-z]_[\w.]+)"', page[debut:fin]))
+    assert len(codes) >= 10
+    dosage = set(client.get("/colonnes").json()["dosage"])
+    assert codes <= dosage, codes - dosage
+
+
 def test_origine_etrangere_refusee(client):
     reponse = client.post("/question", json={"question": "x"}, headers={"Origin": "https://autre.exemple"})
     assert reponse.status_code == 403

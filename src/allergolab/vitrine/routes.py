@@ -123,6 +123,11 @@ def ajouter_page(application: FastAPI, service):
     def avatar():
         return FileResponse(FICHIERS / "cumulus.avatar.json", media_type="application/json")
 
+    @application.get("/carte/regions.geojson", include_in_schema=False)
+    def regions():
+        # Contours simplifiés des 13 régions de métropole (IGN / Etalab) : la carte ne montre que la France.
+        return FileResponse(FICHIERS / "regions.geojson", media_type="application/geo+json")
+
     @application.get("/colonnes", tags=["page"])
     def liste_colonnes():
         """Les noms de colonnes par bloc et la nomenclature des allergènes : aucune donnée de patient."""

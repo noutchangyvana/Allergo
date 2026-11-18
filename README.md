@@ -90,9 +90,10 @@ Le catalogue distingue lecture numérique et signification quantitative. Les cod
 
 ## Page web
 
-L'adresse `/` sert la page de l'équipe 4 : l'Assistant, l'onglet Explorer et la Méthode. Le code se trouve dans `src/allergolab/vitrine/`, branché par `app.py`.
+L'adresse `/` sert la page de l'équipe 4 : l'Assistant, l'onglet Explorer, la Carte et la Méthode. Le code se trouve dans `src/allergolab/vitrine/`, branché par `app.py`.
 
 - **Explorer** : les calculs des outils de l'équipe (seuil 0,3, code 9 « non renseigné », minimum de 30 patients testés), sans modèle et sans coût.
+- **Carte** : la France métropolitaine seule (contours IGN / Etalab, sans fond de carte mondial), avec des couches à cocher. Pollens dans l'air : prévision CAMS de l'heure via Open-Meteo, au chef-lieu de chaque région. Plantes observées : tuiles GBIF filtrées sur la France, par période. Chaque couche cochée affiche ses allergènes du jeu ACC et leur sensibilisation parmi les testés, avec un lien vers la fiche de l'Explorer. Les régions des patients sont anonymisées : aucune n'est placée sur la carte. Les services externes sont appelés par le navigateur, sans clé.
 - **Assistant** : deux formulations sont calculées comme l'Explorer (« Quel pourcentage des patients testés est sensibilisé à Ara_h_2 ? », « Quels sont les cinq allergènes les plus fréquents parmi les patients testés ? ») ; les autres passent par le moteur. Sans modèle, seules les formulations simples reçoivent une réponse.
 - La page publique n'utilise jamais le modèle, sauf si `ALLERGOLAB_PAGE_MODELE=true` est défini en plus de `ALLERGOLAB_MODELE_ACTIF=true`. Les questions sont limitées à 30 par minute et par instance.
 

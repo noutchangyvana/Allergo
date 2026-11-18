@@ -6,6 +6,8 @@
 <title>AllergyLab · Équipe 4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%235b5bf0'/%3E%3Cpath d='M9 5h6M10 5v5l-4 7a1.5 1.5 0 0 0 1.3 2h9.4a1.5 1.5 0 0 0 1.3-2l-4-7V5' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
 :root {
   --fond: #eef1f7; --surface: #ffffff; --surface-2: #f3f5fa; --bord: #e3e7f0;
@@ -457,6 +459,30 @@ table.donnees td.n { text-align: right; } table.donnees th.n { text-align: right
 .toast { position: absolute; left: 50%; bottom: 110px; transform: translate(-50%, 20px); background: #141827; color: #fff; padding: 9px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 6; }
 .toast.vu { opacity: 1; transform: translate(-50%, 0); }
 
+/* ---- Carte de France ---- */
+.carte-grille { display: grid; grid-template-columns: 270px 1fr; gap: 16px; align-items: start; }
+.couches { display: grid; gap: 14px; }
+.couches fieldset { border: 1px solid var(--bord); border-radius: 14px; padding: 10px 12px 12px; margin: 0; background: var(--surface-2); }
+.couches legend { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--pale); padding: 0 4px; }
+.couche { display: flex; align-items: center; gap: 8px; padding: 4px 2px; font-size: 13.5px; cursor: pointer; }
+.couche input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+.couche i { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--c); }
+.couche small { margin-left: auto; color: var(--pale); font-size: 11px; font-family: "JetBrains Mono", ui-monospace, monospace; }
+.couches .note { margin-top: 6px; }
+#carte { height: 540px; border-radius: 18px; border: 1px solid var(--bord); background: #dbe8f5; z-index: 0; }
+:root[data-theme="dark"] #carte { background: #0c1733; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #carte { background: #0c1733; } }
+#carte .leaflet-tooltip { font-family: Inter, system-ui, sans-serif; font-size: 12.5px; }
+.carte-etat { font-size: 12px; color: var(--pale); margin-top: 8px; min-height: 1em; }
+.liens { display: grid; gap: 8px; }
+.lien-acc { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--bord); border-radius: 12px; background: var(--surface); }
+.lien-acc b { font-size: 13.5px; } .lien-acc span { font-size: 12.5px; color: var(--doux); }
+.lien-acc .chiffre { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lien-acc button { flex: none; }
+.sources { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; color: var(--doux); }
+.sources a { color: var(--accent); }
+@media (max-width: 1100px) { .carte-grille { grid-template-columns: 1fr; } #carte { height: 420px; } }
+
 @keyframes halo { 0%,100% { opacity: .8 } 50% { opacity: 1 } }
 @keyframes flotte { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
 @keyframes respire { 0%,100% { transform: scale(.92); opacity: .75 } 50% { transform: scale(1.08); opacity: 1 } }
@@ -519,6 +545,7 @@ table.donnees td.n { text-align: right; } table.donnees th.n { text-align: right
       <div class="onglets" role="tablist">
         <button class="onglet" role="tab" aria-selected="true" data-vue="assistant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Assistant</button>
         <button class="onglet" role="tab" aria-selected="false" data-vue="explorer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Explorer<span class="gratuit">gratuit</span></button>
+        <button class="onglet" role="tab" aria-selected="false" data-vue="carte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Carte</button>
         <button class="onglet" role="tab" aria-selected="false" data-vue="methode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/></svg>Méthode</button>
       </div>
       <div class="actions">
@@ -581,6 +608,43 @@ table.donnees td.n { text-align: right; } table.donnees th.n { text-align: right
             <div class="filtres"><select class="choix" id="f-clinique" aria-label="Colonne clinique"></select></div>
           </div>
           <div id="clinique"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carte -->
+    <div class="vue" id="vue-carte" role="tabpanel">
+      <div class="defile">
+        <h2 class="titre-vue">La France des <em>pollens</em></h2>
+        <p class="chapeau">Cochez les données à afficher sur la carte. Chaque couche est reliée aux allergènes du jeu ACC qui lui correspondent : leur pourcentage de patients sensibilisés est calculé comme dans l'Explorer.</p>
+        <div class="carte-grille">
+          <div class="couches" id="couches">
+            <fieldset id="couches-pollens"><legend>Pollens dans l'air</legend><div class="note" id="note-pollens">Prévision CAMS de l'heure en cours, au chef-lieu de chaque région (grains/m³).</div></fieldset>
+            <fieldset id="couches-plantes"><legend>Plantes observées</legend>
+              <select class="choix" id="periode-plantes" aria-label="Période des observations"><option value="">Toutes les années</option><option value="2010,2023" selected>2010 – 2023</option><option value="2020,2030">Depuis 2020</option></select>
+              <div class="note">Observations GBIF en France : des plantes vues, pas des grains de pollen ; l'effort de prospection varie selon les lieux.</div>
+            </fieldset>
+            <fieldset><legend>Fond</legend><label class="couche"><input type="checkbox" id="couche-regions" checked>Limites des régions</label></fieldset>
+          </div>
+          <div><div id="carte" role="region" aria-label="Carte de France"></div><div class="carte-etat" id="carte-etat"></div></div>
+        </div>
+
+        <div class="panneau" style="margin-top:16px">
+          <div class="panneau-tete"><div><h3>Lien avec le jeu de données ACC</h3><p>Pour chaque couche cochée : les allergènes correspondants, sensibilisation parmi les patients testés (dosage ≥ 0,3, toutes puces).</p></div></div>
+          <div class="liens" id="liens-acc"></div>
+        </div>
+        <div class="panneau">
+          <div class="panneau-tete"><div><h3>Les patients ACC par région</h3><p>Les régions du jeu sont anonymisées (regionA, regionB…) : on ne peut pas les placer sur la carte, et on ne devine aucune correspondance.</p></div></div>
+          <div id="regions-acc"></div>
+        </div>
+        <div class="panneau">
+          <div class="panneau-tete"><div><h3>Sources</h3><p>Données publiques appelées depuis votre navigateur, sans clé et sans coût.</p></div></div>
+          <ul class="sources">
+            <li>Pollens : <a href="https://open-meteo.com/en/docs/air-quality-api" target="_blank" rel="noopener">Open-Meteo, modèle européen CAMS (Copernicus)</a>, prévision et non mesure, CC BY 4.0. Historique mesuré : <a href="https://www.data.gouv.fr/datasets/donnees-historiques-de-surveillance-des-pollens-et-des-moisissures" target="_blank" rel="noopener">RNSA</a> (non branché : fichier de 66 Mo).</li>
+            <li>Plantes : <a href="https://techdocs.gbif.org/en/openapi/v2/maps" target="_blank" rel="noopener">GBIF, API des cartes</a>, filtrée sur la France ; licences propres à chaque jeu source.</li>
+            <li>Contours des régions : <a href="https://www.data.gouv.fr/datasets/contours-administratifs" target="_blank" rel="noopener">IGN / Etalab</a>, simplifiés ; métropole et Corse.</li>
+            <li>Patients : <a href="https://doi.org/10.60597/j5fe-g420" target="_blank" rel="noopener">Allergen Chip Challenge, Société Française d'Allergologie</a>, Licence Ouverte 2.0.</li>
+          </ul>
         </div>
       </div>
     </div>
@@ -797,8 +861,11 @@ function montrer(vue) {
   document.querySelectorAll(".onglet").forEach((o) => o.setAttribute("aria-selected", String(o.dataset.vue === vue)));
   document.querySelectorAll(".vue").forEach((v) => v.classList.toggle("active", v.id === "vue-" + vue));
   if (vue === "explorer") {
-    if (!explorerCharge) { explorerCharge = true; chargerExplorer(); }
+    if (!explorerCharge) explorerCharge = chargerExplorer(); // une promesse : on peut attendre la fin du chargement
     if (!occupe) { humeur("curious", "attente"); dire("Explore librement, c'est gratuit !", { detail: "Clique sur une barre pour voir la fiche d'un allergène." }); }
+  } else if (vue === "carte") {
+    ouvrirCarte();
+    if (!occupe) { humeur("curious", "attente"); dire("Voici la France des pollens.", { detail: "Coche une couche pour l'afficher." }); }
   } else if (vue === "methode" && !occupe) { humeur("proud", "attente"); dire("Voici comment je raisonne.", { detail: "Le bon dénominateur d'abord." }); }
   else if (vue === "assistant" && !occupe) accueillir();
 }
@@ -981,6 +1048,164 @@ REGLES.forEach((r) => { const d = el("div", "regle"); d.innerHTML = ICONES.atten
 GLOSSAIRE.forEach(([t, d]) => { const x = el("div", "terme"); x.append(el("b", "", t), el("p", "", d)); $("glossaire").appendChild(x); });
 
 /* ============================================================
+   Carte de France : des couches qu'on coche ou décoche, chacune reliée
+   aux allergènes du jeu ACC qui lui correspondent.
+   Aucune donnée de patient n'est placée sur la carte : leurs régions sont anonymisées.
+   ============================================================ */
+const LEAFLET = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+// [variable Open-Meteo, nom, codes ACC correspondants, couleur]
+const COUCHES_POLLENS = [
+  ["birch_pollen", "Bouleau", ["Bet_v_1"], "#2a9d8f"], ["alder_pollen", "Aulne", ["Aln_g_1"], "#457b9d"],
+  ["grass_pollen", "Graminées", ["Phl_p_1", "Phl_p_5"], "#6a994e"], ["mugwort_pollen", "Armoise", ["Art_v_1"], "#bc6c25"],
+  ["olive_pollen", "Olivier", ["Ole_e_1"], "#8d6e63"], ["ragweed_pollen", "Ambroisie", ["Amb_a_1"], "#d62828"],
+];
+// [nom, identifiant taxonomique GBIF, style des points, codes ACC, couleur de la pastille]
+const COUCHES_PLANTES = [
+  ["Bouleaux", 2875008, "green.point", ["Bet_v_1"], "#2e9e4f"], ["Aulnes", 2876099, "blue.point", ["Aln_g_1"], "#3a6fd8"],
+  ["Noisetiers", 2875967, "purple.point", ["Cor_a_1.0101"], "#8e44ad"], ["Cyprès", 10225588, "orange.point", ["Cup_a_1"], "#e67e22"],
+  ["Oliviers", 5415040, "green.point", ["Ole_e_1"], "#2e9e4f"], ["Frênes", 3172323, "red.point", ["Fra_e_1"], "#d63031"],
+];
+// Le chef-lieu de chaque région de métropole : le point où la prévision de pollens est lue.
+const CHEFS_LIEUX = [
+  ["Paris", 48.857, 2.352], ["Orléans", 47.903, 1.909], ["Dijon", 47.322, 5.042], ["Rouen", 49.443, 1.1],
+  ["Lille", 50.629, 3.057], ["Strasbourg", 48.573, 7.752], ["Nantes", 47.218, -1.554], ["Rennes", 48.117, -1.678],
+  ["Bordeaux", 44.838, -0.579], ["Toulouse", 43.605, 1.444], ["Lyon", 45.764, 4.836], ["Marseille", 43.297, 5.37], ["Ajaccio", 41.919, 8.739],
+];
+const FRANCE = [[41.3, -5.2], [51.1, 9.6]];
+let laCarte = null, coucheRegions = null, pollensLus = null, regionsChargees = false;
+const couchesActives = new Map(); // id de la case -> couche Leaflet affichée
+const fiches = {}; // code ACC -> fiche de l'Explorer, lue une seule fois
+
+function chargerScript(src) {
+  return new Promise((ok, ko) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+}
+function etatCarte(texte) { $("carte-etat").textContent = texte; }
+
+async function ouvrirCarte() {
+  if (laCarte) { setTimeout(() => laCarte.invalidateSize(), 50); return; }
+  try { if (!window.L) await chargerScript(LEAFLET); }
+  catch (e) { $("carte").textContent = "La bibliothèque de laCarte (Leaflet) n'a pas pu être chargée : vérifiez la connexion."; return; }
+  // Aucun fond de laCarte mondial : seulement les contours de la France, et la vue ne sort pas de la France.
+  laCarte = L.map("carte", { minZoom: 5, maxZoom: 11, zoomSnap: 0.25, maxBounds: [[40, -7.5], [52.5, 12]], maxBoundsViscosity: 1 });
+  laCarte.attributionControl.setPrefix(false);
+  laCarte.fitBounds(FRANCE);
+  dessinerCases();
+  try {
+    const geo = await lire("/carte/regions.geojson");
+    coucheRegions = L.geoJSON(geo, {
+      style: { color: "#5b6bd6", weight: 1.2, fillColor: "#ffffff", fillOpacity: 0.6 },
+      onEachFeature: (f, c) => c.bindTooltip(f.properties.nom, { sticky: true }),
+    }).addTo(laCarte);
+    laCarte.attributionControl.addAttribution("Régions : IGN / Etalab");
+  } catch (e) { etatCarte("Contours des régions indisponibles."); }
+  if (!regionsChargees) { regionsChargees = true; dessinerRegionsACC(); }
+  majLiens();
+}
+
+function caseCouche(id, libelle, couleur, sous, quand) {
+  const l = el("label", "couche"); const c = el("input"); c.type = "checkbox"; c.id = id;
+  const pastille = el("i"); pastille.style.setProperty("--c", couleur);
+  l.append(c, pastille, document.createTextNode(libelle));
+  if (sous) l.appendChild(el("small", "", sous));
+  c.onchange = () => quand(c.checked);
+  return l;
+}
+function dessinerCases() {
+  const pollens = $("couches-pollens"), note = $("note-pollens");
+  COUCHES_POLLENS.forEach(([v, nom, codes, couleur]) => pollens.insertBefore(caseCouche("pollen-" + v, nom, couleur, codes.join(" "), (on) => basculerPollen(v, on)), note));
+  const plantes = $("couches-plantes"), periode = $("periode-plantes");
+  COUCHES_PLANTES.forEach(([nom, cle, style, codes, couleur]) => plantes.insertBefore(caseCouche("plante-" + cle, nom, couleur, codes.join(" "), (on) => basculerPlante(cle, on)), periode));
+  periode.onchange = () => COUCHES_PLANTES.forEach(([, cle]) => { if ($("plante-" + cle).checked) { basculerPlante(cle, false); basculerPlante(cle, true); } });
+  $("couche-regions").onchange = (e) => { if (coucheRegions) e.target.checked ? coucheRegions.addTo(laCarte) : coucheRegions.remove(); };
+}
+
+function retirer(id) { const c = couchesActives.get(id); if (c) { c.remove(); couchesActives.delete(id); } majLiens(); }
+
+function basculerPlante(cle, on) {
+  const id = "plante-" + cle;
+  if (!on) return retirer(id);
+  const [, , style] = COUCHES_PLANTES.find((p) => p[1] === cle);
+  const annees = $("periode-plantes").value;
+  const url = `https://api.gbif.org/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?srs=EPSG:3857&country=FR&taxonKey=${cle}&style=${style}` + (annees ? `&year=${annees}` : "");
+  retirer(id);
+  couchesActives.set(id, L.tileLayer(url, { attribution: "Observations : GBIF.org", opacity: 0.9 }).addTo(laCarte));
+  majLiens();
+}
+
+async function lirePollens() {
+  if (pollensLus) return pollensLus;
+  const url = "https://air-quality-api.open-meteo.com/v1/air-quality?" + new URLSearchParams({
+    latitude: CHEFS_LIEUX.map((v) => v[1]).join(","), longitude: CHEFS_LIEUX.map((v) => v[2]).join(","),
+    current: COUCHES_POLLENS.map((p) => p[0]).join(","), domains: "cams_europe",
+  });
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("Open-Meteo a répondu " + r.status);
+  const j = await r.json();
+  pollensLus = Array.isArray(j) ? j : [j];
+  return pollensLus;
+}
+async function basculerPollen(variable, on) {
+  const id = "pollen-" + variable;
+  if (!on) return retirer(id);
+  const [, nom, , couleur] = COUCHES_POLLENS.find((p) => p[0] === variable);
+  try {
+    etatCarte("Lecture de la prévision de pollens…");
+    const points = await lirePollens();
+    if (!$(id).checked) return; // décochée pendant la lecture
+    const groupe = L.layerGroup();
+    let maximum = 0, heure = "";
+    points.forEach((p, i) => {
+      const valeur = p.current ? p.current[variable] : null; heure = p.current ? p.current.time : heure;
+      const [ville, lat, lon] = CHEFS_LIEUX[i];
+      if (valeur === null || valeur === undefined) return;
+      maximum = Math.max(maximum, valeur);
+      L.circleMarker([lat, lon], { radius: valeur > 0 ? Math.min(28, 6 + 3 * Math.sqrt(valeur)) : 5, color: couleur, weight: 2,
+        fillColor: couleur, fillOpacity: valeur > 0 ? 0.45 : 0.08 })
+        .bindTooltip(`${nom} · ${ville} : ${nombre(valeur)} grains/m³`).addTo(groupe);
+    });
+    retirer(id); couchesActives.set(id, groupe.addTo(laCarte));
+    etatCarte(`Prévision CAMS du ${heure.replace("T", " à ")} (UTC).` + (maximum === 0 ? ` ${nom} : aucun grain prévu, la saison est peut-être terminée.` : ""));
+  } catch (e) { $(id).checked = false; etatCarte("Prévision de pollens indisponible : " + e.message); }
+  majLiens();
+}
+
+// Le lien avec le jeu de données : les allergènes des couches cochées, et leur sensibilisation chez les testés.
+let tourLiens = 0; // seul le dernier appel écrit : un appel plus ancien qui finit après ne l'écrase pas
+async function majLiens() {
+  const tour = ++tourLiens;
+  const z = $("liens-acc"), parCode = new Map();
+  COUCHES_POLLENS.forEach(([v, nom, codes]) => { if ($("pollen-" + v)?.checked) codes.forEach((c) => parCode.set(c, (parCode.get(c) || []).concat("pollen de " + nom.toLowerCase()))); });
+  COUCHES_PLANTES.forEach(([nom, cle, , codes]) => { if ($("plante-" + cle)?.checked) codes.forEach((c) => parCode.set(c, (parCode.get(c) || []).concat(nom.toLowerCase() + " observés"))); });
+  if (!parCode.size) { z.innerHTML = ""; z.appendChild(el("div", "note", "Cochez une couche : ses allergènes du jeu ACC s'affichent ici.")); return; }
+  const lignes = await Promise.all([...parCode].map(async ([code, couches]) => {
+    try { fiches[code] ??= await lire("/explorer/allergene?code=" + encodeURIComponent(code)); return [code, couches, fiches[code]]; }
+    catch (e) { return [code, couches, null]; }
+  }));
+  if (tour !== tourLiens) return;
+  z.innerHTML = "";
+  for (const [code, couches, f] of lignes) {
+    const ligne = el("div", "lien-acc"), texte = el("div");
+    texte.append(el("b", "", `${joli(code)}${f && f.source ? " · " + f.source : ""}`), el("br"), el("span", "", "Couche : " + couches.join(", ")));
+    const e = f && f.ensemble;
+    const chiffre = el("div", "chiffre", e ? pct(e.pourcentage_parmi_testes) : "—");
+    if (e) chiffre.title = `${nombre(e.patients_positifs)} positifs sur ${nombre(e.patients_testes)} patients testés`;
+    const voir = el("button", "bouton-2", "Fiche"); voir.onclick = allerA(code);
+    ligne.append(texte, chiffre, voir); z.appendChild(ligne);
+  }
+}
+
+async function dessinerRegionsACC() {
+  const z = $("regions-acc");
+  try {
+    const r = await lire("/explorer/clinique?colonne=French_Region");
+    const lignes = Object.entries(r.codes).map(([code, v]) => ({ titre: code, sous: `${nombre(v.patients)} patients`, valeur: v.pourcentage || 0 }));
+    const max = Math.min(100, Math.ceil((Math.max(...lignes.map((l) => l.valeur), 1) + 2) / 10) * 10);
+    z.appendChild(graphiqueBarres(lignes, { max, couleur: "var(--serie-1)" }));
+    z.appendChild(el("div", "note", `${nombre(r.patients_renseignes)} patients renseignés, ${nombre(r.cases_vides)} case(s) vide(s). Pourcentages parmi les renseignés.`));
+  } catch (e) { z.textContent = "Répartition indisponible : " + e.message; }
+}
+
+/* ============================================================
    Assistant
    ============================================================ */
 function vide() {
@@ -1028,7 +1253,8 @@ function attente() {
    L'affichage se choisit avec analyse.type et lit analyse.lignes : aucun chiffre n'est
    cherché dans une phrase, aucune unité n'est devinée.
    ============================================================ */
-const allerA = (code) => () => { montrer("explorer"); setTimeout(() => ouvrirFiche(code, true), 300); };
+// Attendre que l'Explorer ait fini de se charger : sinon sa fiche par défaut remplacerait celle demandée.
+const allerA = (code) => () => { montrer("explorer"); Promise.resolve(explorerCharge).then(() => ouvrirFiche(code, true)); };
 const nomDeLigne = (l) => l.libelle || joli(l.code);
 const nomPuce = (p) => (p === "toutes" ? "toutes puces" : p.replace("_", " "));
 const virgule = (x) => String(x).replace(".", ",");
