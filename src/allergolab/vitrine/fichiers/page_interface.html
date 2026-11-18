@@ -1,0 +1,1370 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AllergyLab · Équipe 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fond: #eef1f7; --surface: #ffffff; --surface-2: #f3f5fa; --bord: #e3e7f0;
+  --texte: #141827; --doux: #5b6275; --pale: #8a91a5;
+  --accent: #5b5bf0; --accent-2: #8b5cf6; --accent-doux: #ececfe;
+  --vert: #0f9d6b; --vert-doux: #e3f6ee; --ambre: #c27803; --ambre-doux: #fdf3dc; --rouge: #d93b3b; --rouge-doux: #fde8e8;
+  --ombre: 0 1px 2px rgba(20,24,39,.05), 0 12px 32px rgba(20,24,39,.08);
+  --code: #0f1222; --code-texte: #d6dbf5;
+  /* Graphiques : palette de référence validée (bleu, orange, vert d'eau), une couleur par puce */
+  --serie-1: #2a78d6; --puce-ALEX: #2a78d6; --puce-ISAC_V1: #eb6834; --puce-ISAC_V2: #1baf7a;
+  --grille: #e1e0d9; --base: #c3c2b7;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --fond: #0b0d16; --surface: #131625; --surface-2: #1a1e31; --bord: #262b42;
+  --texte: #eceefa; --doux: #a3a9c2; --pale: #6f7590;
+  --accent: #8183ff; --accent-2: #a78bfa; --accent-doux: #22244a;
+  --vert: #34d399; --vert-doux: #0f2b23; --ambre: #fbbf24; --ambre-doux: #2e2410; --rouge: #f87171; --rouge-doux: #331616;
+  --ombre: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.4); --code: #080a13;
+  --serie-1: #3987e5; --puce-ALEX: #3987e5; --puce-ISAC_V1: #d95926; --puce-ISAC_V2: #199e70; --grille: #2c2c2a; --base: #383835;
+} }
+:root[data-theme="dark"] {
+  /* Thème « laboratoire » : bleu nuit, lavande pour l'action, émeraude pour les résultats validés.
+     Textes secondaires choisis pour rester lisibles sur le fond (contraste ≥ 4,5:1). */
+  --fond: #0a0f1e; --surface: #10172b; --surface-2: #161f38; --bord: #232c49;
+  --texte: #eef0fb; --doux: #b8bfd8; --pale: #8f97b5;
+  --accent: #a5a8ff; --accent-2: #c4b5fd; --accent-doux: rgba(165,168,255,.13); --accent-plein: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --vert: #34d399; --vert-doux: rgba(52,211,153,.13); --ambre: #fbbf24; --ambre-doux: rgba(251,191,36,.12); --rouge: #f87171; --rouge-doux: rgba(248,113,113,.13);
+  --ombre: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35); --code: #070b16; --code-texte: #d6dbf5;
+  --serie-1: #8b8cff; --puce-ALEX: #5b9cf0; --puce-ISAC_V1: #f08a5d; --puce-ISAC_V2: #34c79a; --grille: rgba(255,255,255,.07); --base: rgba(255,255,255,.18);
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--fond); color: var(--texte); font-size: 15px; -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.app { display: grid; grid-template-columns: minmax(340px, 38%) 1fr; gap: 20px; padding: 20px; height: 100vh; }
+.mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+em.latin { font-style: italic; }
+
+/* ================= Bloc 1 : le ciel et le nuage (design « verre liquide » du zip) ================= */
+/* Le paysage du zip, un voile sombre en bas pour que le blanc se lise, et des panneaux de verre bleu nuit */
+.paysage { --halo: 255,255,255; position: relative; border-radius: 28px; overflow: hidden; box-shadow: var(--ombre);
+  background: #4f8fd6 url(/fond_paysage.jpg) center 60% / cover no-repeat; display: flex; flex-direction: column; isolation: isolate; color: #fff; }
+.paysage[data-humeur="reflechit"] { --halo: 170,215,255; }
+.paysage[data-humeur="reponse"]   { --halo: 180,255,220; }
+.paysage[data-humeur="abstention"]{ --halo: 255,220,165; }
+.paysage[data-humeur="erreur"]    { --halo: 255,175,185; }
+.paysage::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    linear-gradient(to top, rgba(3,12,28,.72) 0%, rgba(3,12,28,.40) 34%, rgba(3,12,28,0) 62%),
+    linear-gradient(to bottom, rgba(10,40,90,.18), rgba(10,40,90,0) 18%); }
+/* Verre : teinte bleu nuit, flou, reflet en haut et liseré lumineux sur le bord */
+.verre { position: relative; color: #fff; isolation: isolate;
+  background: linear-gradient(160deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.03) 45%, rgba(255,255,255,.07) 100%), var(--teinte, rgba(9,22,50,.42));
+  -webkit-backdrop-filter: blur(26px) saturate(135%) brightness(.9); backdrop-filter: blur(26px) saturate(135%) brightness(.9);
+  box-shadow: inset 0 1px .5px rgba(255,255,255,.55), inset 0 -1px .5px rgba(255,255,255,.10), inset 0 0 18px rgba(255,255,255,.05),
+    0 12px 34px rgba(4,18,48,.26), 0 2px 6px rgba(4,18,48,.12); }
+.verre::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,.75) 0%, rgba(255,255,255,.14) 28%, rgba(255,255,255,0) 55%, rgba(255,255,255,.12) 78%, rgba(255,255,255,.45) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.marque { position: relative; z-index: 3; margin: 16px; align-self: flex-start; display: flex; align-items: center; gap: 10px; padding: 6px 18px 6px 6px; border-radius: 999px; }
+.logo { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.95); display: grid; place-items: center; box-shadow: 0 0 14px rgba(255,255,255,.5); }
+.logo svg { width: 18px; height: 18px; stroke: #0c1a38; }
+.marque b { display: block; font-size: 14.5px; font-weight: 600; letter-spacing: -.01em; }
+.marque span { font-size: 12px; color: rgba(255,255,255,.86); }
+.scene { position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 6%; }
+/* La bulle : verre plus sombre que le reste, pour que le texte se lise sur le ciel */
+.bulle { position: relative; z-index: 3; max-width: 90%; margin-bottom: 14px; padding: 14px 18px 12px; border-radius: 22px; text-align: center; color: #fff;
+  background: linear-gradient(160deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.02) 45%, rgba(255,255,255,.05) 100%), rgba(7,17,40,.66);
+  -webkit-backdrop-filter: blur(32px) saturate(120%) brightness(.8); backdrop-filter: blur(32px) saturate(120%) brightness(.8);
+  box-shadow: inset 0 1px .5px rgba(255,255,255,.55), inset 0 0 0 1px rgba(255,255,255,.12), 0 12px 34px rgba(4,18,48,.30);
+  text-shadow: 0 1px 1px rgba(0,10,30,.25); }
+.bulle::after { content: ""; position: absolute; left: 0; right: 0; margin: 0 auto; bottom: -7px; width: 14px; height: 14px; transform: rotate(45deg); border-radius: 3px;
+  background: rgba(16,30,60,.92); box-shadow: 1px 1px 0 rgba(255,255,255,.12); z-index: -1; }
+.bulle.change { animation: rebond .45s ease; }
+.bulle .dit { font-weight: 600; font-size: 15px; line-height: 1.4; }
+.bulle .detail { display: block; color: rgba(255,255,255,.86); font-size: 13px; font-weight: 400; margin-top: 3px; line-height: 1.45; }
+.bulle .valeur-bulle { display: block; font-size: 26px; font-weight: 600; letter-spacing: -.01em; color: #8ff0c4; margin-top: 2px; font-family: "JetBrains Mono", ui-monospace, monospace; }
+.raccourcis { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px; }
+.raccourcis:empty { display: none; }
+/* Les raccourcis : les pastilles de verre du zip */
+.puce-action { display: inline-flex; align-items: center; gap: 6px; border: 0; background: rgba(255,255,255,.12); color: #fff; border-radius: 999px; padding: 7px 13px; font-size: 12.5px; font-weight: 500;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); transition: transform .2s ease, background-color .2s; }
+.puce-action:hover { background: rgba(255,255,255,.24); transform: translateY(-2px); }
+.puce-action i { font-style: normal; font-weight: 500; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; background: rgba(143,240,196,.18); color: #8ff0c4; }
+.puce-action i.paye { background: rgba(169,220,255,.18); color: #a9dcff; }
+/* Le nuage : le halo du zip, un dégradé blanc qui respire et prend la couleur de l'humeur */
+.mascotte { width: 240px; height: 200px; position: relative; cursor: pointer; transition: transform .2s; }
+.mascotte:hover { transform: scale(1.03); }
+.mascotte:focus-visible { outline: 2px solid rgba(255,255,255,.8); outline-offset: 8px; border-radius: 30px; }
+.mascotte::before { content: ""; position: absolute; inset: -12% -6%; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side circle at 50% 50%, rgba(var(--halo), .30) 0%, rgba(var(--halo), .18) 35%, rgba(var(--halo), .05) 62%, rgba(var(--halo), 0) 100%);
+  animation: halo 4s ease-in-out infinite; }
+.paysage[data-humeur="reflechit"] .mascotte::before { animation-duration: 1.6s; }
+.mascotte > span, .mascotte > svg { filter: drop-shadow(0 6px 18px rgba(4,18,48,.25)); }
+.vivant > span { display: block; }
+.mascotte > svg { width: 100%; height: 100%; animation: flotte 3.4s ease-in-out infinite; }
+.lueurs { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+.lueurs i { position: absolute; bottom: -10px; border-radius: 50%; background: rgba(var(--halo), .9); box-shadow: 0 0 8px 2px rgba(var(--halo), .6); animation: monte linear infinite; opacity: 0; }
+/* Les compteurs : la barre de mesures du zip (libellé en petites capitales, valeur en chiffres fixes) */
+.compteurs { position: relative; z-index: 3; margin: 0 16px 16px; display: grid; grid-template-columns: repeat(4, 1fr); padding: 10px 4px; border-radius: 22px; --teinte: rgba(8,20,46,.55); }
+.compteur { display: flex; flex-direction: column-reverse; align-items: center; gap: 2px; padding: 2px 6px; }
+.compteur + .compteur { border-left: 1px solid rgba(255,255,255,.16); }
+.compteur b { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.compteur span { font-size: 10.5px; color: rgba(255,255,255,.68); text-transform: uppercase; letter-spacing: .06em; }
+
+/* ================= Historique des conversations (le panneau du zip) ================= */
+/* Le bouton rond à côté du titre ouvre un panneau de verre qui glisse depuis la gauche */
+.tete-paysage { position: relative; z-index: 3; margin: 16px; align-self: flex-start; display: flex; align-items: center; gap: 8px; }
+.tete-paysage .marque { margin: 0; }
+.bouton-histo { width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; display: grid; place-items: center; transition: transform .2s; }
+.bouton-histo:hover { transform: scale(1.06); }
+.bouton-histo svg { width: 19px; height: 19px; }
+.historique { position: fixed; z-index: 40; top: 20px; bottom: 20px; left: 20px; width: 310px; display: flex; flex-direction: column; border-radius: 22px;
+  --teinte: rgba(7,17,40,.90); transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .3s; }
+body:not(.histo-ouvert) .historique { transform: translateX(calc(-100% - 30px)); opacity: 0; pointer-events: none; }
+.voile-histo { position: fixed; inset: 0; z-index: 39; background: rgba(3,12,28,.35); }
+.voile-histo[hidden] { display: none; }
+.sb-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 12px 10px 18px; }
+.sb-title { font-weight: 600; font-size: 14px; }
+.sb-actions { display: flex; align-items: center; gap: 6px; }
+.sb-new { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border: 0; border-radius: 999px; font-size: 12.5px; font-weight: 500; background: #fff; color: #0c1a38; transition: transform .2s; }
+.sb-new:hover { transform: translateY(-1px); }
+.sb-new svg, .sb-fermer svg { width: 12px; height: 12px; }
+.sb-fermer { width: 28px; height: 28px; border: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.10); color: #fff; }
+.sb-fermer:hover { background: rgba(255,255,255,.2); }
+.sb-search { display: flex; align-items: center; gap: 8px; margin: 0 12px 8px; height: 34px; padding: 0 12px; border-radius: 12px; background: rgba(255,255,255,.08); color: rgba(255,255,255,.68); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+.sb-search:focus-within { box-shadow: inset 0 0 0 1px rgba(255,255,255,.35); color: #fff; }
+.sb-search svg { width: 14px; height: 14px; flex: none; }
+.sb-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: #fff; font-size: 13px; }
+.sb-search input::placeholder { color: rgba(255,255,255,.68); }
+.sb-search input::-webkit-search-cancel-button { filter: invert(1); opacity: .6; }
+.sb-list { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 8px 10px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.2) transparent; }
+.sb-group { margin: 12px 10px 4px; font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.68); }
+.sb-group:first-child { margin-top: 4px; }
+.sb-item { display: block; width: 100%; text-align: left; border: 0; background: transparent; padding: 9px 10px; border-radius: 12px; color: #fff; transition: background-color .15s; }
+.sb-item:hover { background: rgba(255,255,255,.08); }
+.sb-item[aria-current="true"] { background: rgba(255,255,255,.16); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+.sb-item-title { display: block; font-size: 13.5px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-item-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 11.5px; color: rgba(255,255,255,.68); }
+.sb-item-meta .dots { display: inline-flex; gap: 3px; }
+.sb-item-meta .time { margin-left: auto; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10.5px; }
+/* une pastille par question : vert = réponse, ambre = abstention, rose = erreur */
+.sb-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; background: #a9dcff; }
+.sb-dot[data-kind="reponse"] { background: #8ff0c4; }
+.sb-dot[data-kind="abstention"] { background: #ffd59a; }
+.sb-dot[data-kind="erreur"] { background: #ffb3c0; }
+.sb-empty { padding: 18px 12px; font-size: 13px; line-height: 1.5; color: rgba(255,255,255,.68); text-align: center; }
+.sb-foot { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-top: 1px solid rgba(255,255,255,.10); }
+.sb-user { display: flex; flex-direction: column; min-width: 0; font-size: 12.5px; line-height: 1.3; }
+.sb-user b { font-weight: 500; }
+.sb-user span { font-size: 11px; color: rgba(255,255,255,.68); }
+.sb-effacer { margin-left: auto; height: 28px; padding: 0 11px; border: 0; border-radius: 999px; font-size: 12px; background: rgba(255,255,255,.10); color: #fff; }
+.sb-effacer:hover { background: rgba(255,179,192,.22); }
+
+/* ================= Bloc 2 : onglets ================= */
+.texte { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--surface); border-radius: 28px; box-shadow: var(--ombre); border: 1px solid var(--bord); overflow: hidden; }
+.haut { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px 12px 22px; border-bottom: 1px solid var(--bord); }
+.onglets { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 14px; }
+.onglet { display: inline-flex; align-items: center; gap: 7px; border: 0; background: none; color: var(--doux); padding: 8px 14px; border-radius: 10px; font-weight: 600; font-size: 13.5px; transition: .15s; }
+.onglet svg { width: 16px; height: 16px; }
+.onglet:hover { color: var(--texte); }
+.onglet[aria-selected="true"] { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(20,24,39,.1); }
+.onglet .gratuit { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--vert-doux); color: var(--vert); }
+.actions { display: flex; align-items: center; gap: 10px; }
+.statut { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--doux); white-space: nowrap; }
+.statut i { width: 8px; height: 8px; border-radius: 50%; background: var(--vert); box-shadow: 0 0 0 4px var(--vert-doux); }
+.statut.occupe i { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-doux); animation: pulse 1s infinite; }
+.bouton-2 { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 11px; border: 1px solid var(--bord); background: var(--surface-2); color: var(--texte); font-weight: 600; font-size: 13px; transition: .15s; }
+.bouton-2:hover { border-color: var(--accent); color: var(--accent); }
+.bouton-1 { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 11px; border: 0; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; font-weight: 600; font-size: 13px; }
+.vue { flex: 1; min-height: 0; display: none; flex-direction: column; }
+.vue.active { display: flex; }
+.defile { flex: 1; overflow-y: auto; scroll-behavior: smooth; padding: 22px; }
+
+/* ---- Assistant ---- */
+.vide h2, .titre-vue { font-size: 26px; letter-spacing: -.03em; margin: 4px 0 8px; font-weight: 800; }
+.vide h2 em, .titre-vue em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.chapeau { color: var(--doux); line-height: 1.6; margin: 0 0 20px; max-width: 620px; }
+.titre-section { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--pale); margin: 0 0 10px; }
+.suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.suggestion { text-align: left; display: flex; gap: 12px; align-items: flex-start; background: var(--surface-2); border: 1px solid var(--bord); border-radius: 16px; padding: 14px; color: var(--texte); transition: .18s; }
+.suggestion:hover { border-color: var(--accent); transform: translateY(-2px); }
+.suggestion .num { width: 30px; height: 30px; flex: none; border-radius: 9px; background: var(--accent-doux); color: var(--accent); display: grid; place-items: center; }
+.suggestion .num svg { width: 16px; height: 16px; }
+.suggestion small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-bottom: 3px; }
+.suggestion span { font-size: 13.5px; line-height: 1.45; }
+.message { display: flex; flex-direction: column; margin-bottom: 22px; animation: entre .35s ease both; }
+.message.moi { align-items: flex-end; }
+.bulle-moi { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; padding: 12px 16px; border-radius: 18px 18px 4px 18px; max-width: 80%; line-height: 1.5; box-shadow: 0 6px 18px rgba(91,91,240,.22); white-space: pre-wrap; }
+.carte { min-width: 0; background: var(--surface); border: 1px solid var(--bord); border-radius: 18px; overflow: hidden; }
+.carte-corps { padding: 16px 18px; }
+.entete-carte { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.outils-carte { display: flex; gap: 4px; }
+.icone { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--pale); transition: .15s; }
+.icone:hover { background: var(--surface-2); color: var(--accent); }
+.icone svg { width: 16px; height: 16px; }
+.pastille { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; }
+.pastille.reponse { background: var(--vert-doux); color: var(--vert); }
+.pastille.abstention { background: var(--ambre-doux); color: var(--ambre); }
+.pastille.erreur { background: var(--rouge-doux); color: var(--rouge); }
+.pastille.info { background: var(--accent-doux); color: var(--accent); }
+.pastille svg { width: 14px; height: 14px; }
+.valeur { font-size: 32px; font-weight: 800; letter-spacing: -.03em; margin: 12px 0 2px; word-break: break-word; }
+.justif { color: var(--doux); line-height: 1.6; margin-top: 8px; }
+.justif b { color: var(--texte); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 10px 18px; border-top: 1px solid var(--bord); background: var(--surface-2); font-size: 12.5px; color: var(--pale); align-items: center; }
+.voir { margin-left: auto; background: none; border: 0; color: var(--accent); font-weight: 600; font-size: 12.5px; padding: 0; }
+.etapes { display: none; padding: 4px 18px 16px; background: var(--surface-2); }
+.etapes.ouvert { display: block; }
+.etape { margin-top: 12px; }
+.etape b { font-size: 12px; color: var(--doux); }
+pre { background: var(--code); color: var(--code-texte); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12.5px; line-height: 1.55; padding: 12px 14px; border-radius: 10px; overflow-x: auto; margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; }
+pre.res { background: transparent; color: var(--doux); border: 1px dashed var(--bord); }
+.verif { border-top: 1px solid var(--bord); padding: 14px 18px 16px; }
+.verif-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.verif-tete b { font-size: 13px; }
+.suivis { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.suivis .titre-section { width: 100%; margin: 0; }
+.suivi { text-align: left; border: 1px solid var(--bord); background: var(--surface); color: var(--texte); border-radius: 12px; padding: 8px 12px; font-size: 13px; transition: .15s; }
+.suivi:hover { border-color: var(--accent); color: var(--accent); }
+.attente .carte-corps { display: flex; align-items: center; gap: 12px; color: var(--doux); }
+.attente .chrono { margin-left: auto; font-variant-numeric: tabular-nums; font-size: 12.5px; color: var(--pale); }
+.ondes { display: flex; gap: 5px; }
+.ondes i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: saute 1.1s infinite ease-in-out; }
+.ondes i:nth-child(2) { animation-delay: .15s; } .ondes i:nth-child(3) { animation-delay: .3s; }
+.saisie { position: relative; padding: 12px 22px 16px; border-top: 1px solid var(--bord); }
+.boite { display: flex; align-items: flex-end; gap: 10px; background: var(--surface-2); border: 1px solid var(--bord); border-radius: 18px; padding: 8px 8px 8px 16px; transition: border-color .15s, box-shadow .15s; }
+.boite:focus-within { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 4px var(--accent-doux); }
+textarea { flex: 1; border: 0; outline: 0; resize: none; background: transparent; color: var(--texte); font: inherit; line-height: 1.5; padding: 8px 0; max-height: 150px; }
+textarea::placeholder { color: var(--pale); }
+.envoyer { width: 42px; height: 42px; flex: none; border-radius: 13px; border: 0; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; display: grid; place-items: center; transition: .15s; }
+.envoyer:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(91,91,240,.35); }
+.envoyer:disabled { opacity: .4; cursor: default; }
+.envoyer svg { width: 20px; height: 20px; }
+.aide { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: 11.5px; color: var(--pale); }
+kbd { font-family: inherit; font-size: 11px; border: 1px solid var(--bord); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; background: var(--surface-2); color: var(--doux); }
+.complete { position: absolute; left: 22px; right: 22px; bottom: calc(100% - 6px); background: var(--surface); border: 1px solid var(--bord); border-radius: 14px; box-shadow: var(--ombre); padding: 6px; display: none; z-index: 5; max-height: 300px; overflow-y: auto; }
+.complete.ouvert { display: block; }
+.complete button { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 10px; border: 0; background: none; color: var(--texte); padding: 8px 10px; border-radius: 9px; text-align: left; font-size: 13px; }
+.complete button .mono { font-size: 13px; }
+.complete button small { color: var(--pale); font-size: 11.5px; text-align: right; }
+.complete button.choisi, .complete button:hover { background: var(--accent-doux); color: var(--accent); }
+
+/* ---- Réponses structurées ----
+   Ordre de lecture : titre, réponse courte, visualisation, à retenir, actions, questions suggérées,
+   puis, repliés, la méthode et les détails techniques. */
+:root[data-theme="dark"] .texte { background: radial-gradient(900px 360px at 15% -8%, rgba(139,92,246,.10), transparent 60%), var(--surface); border-color: var(--bord); }
+:root[data-theme="dark"] .bulle-moi, :root[data-theme="dark"] .envoyer, :root[data-theme="dark"] .bouton-1, :root[data-theme="dark"] .pas .rond { background: var(--accent-plein); color: #fff; }
+:root[data-theme="dark"] .suggestion, :root[data-theme="dark"] .panneau, :root[data-theme="dark"] .tuile { background: rgba(255,255,255,.03); }
+.carte.reponse-ia { background: var(--surface); border-color: var(--bord); border-radius: 20px; box-shadow: var(--ombre);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.reponse-ia .carte-corps { padding: 18px 22px 20px; display: grid; gap: 16px; }
+.reponse-ia .entete-carte { margin-bottom: -6px; }
+.titre-reponse { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.015em; line-height: 1.3; }
+.titre-reponse small { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--pale); letter-spacing: 0; }
+.resume { margin: 0; font-size: 16px; line-height: 1.6; color: var(--doux); max-width: 64ch; }
+.resume strong { color: var(--texte); font-weight: 650; }
+.resume .chiffre-cle { color: var(--vert); font-weight: 650; font-variant-numeric: tabular-nums; }
+/* KPI : une valeur unique, mise en valeur sans être énorme */
+.kpi { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 16px 18px; border-radius: 16px; background: var(--vert-doux); }
+.kpi-chiffre { font-size: 30px; font-weight: 650; letter-spacing: -.02em; color: var(--vert); font-variant-numeric: tabular-nums; }
+.kpi-libelle { font-size: 14px; color: var(--doux); }
+/* Classement : barres horizontales animées, nom lisible en premier, code scientifique en second */
+.visu .barres { gap: 9px; }
+.visu .barre { grid-template-columns: minmax(170px, 36%) 1fr 64px; padding: 5px 6px; }
+.visu .barre .nom b { font-size: 14px; font-weight: 600; }
+.visu .barre .nom small { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11.5px; }
+.visu .piste { height: 12px; border-radius: 6px; border-left: 0; background: var(--surface-2); overflow: hidden; }
+.visu .piste i { border-radius: 6px; background: linear-gradient(90deg, #6366f1, var(--c, #a78bfa)); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.visu .barre:first-child .piste i { background: linear-gradient(90deg, #10b981, #34d399); }
+.visu .barre:nth-child(2) .piste i { transition-delay: .06s; } .visu .barre:nth-child(3) .piste i { transition-delay: .12s; }
+.visu .barre:nth-child(4) .piste i { transition-delay: .18s; } .visu .barre:nth-child(5) .piste i { transition-delay: .24s; }
+.visu .barre:nth-child(n+6) .piste i { transition-delay: .3s; }
+.visu .axe { grid-template-columns: minmax(170px, 36%) 1fr 64px; }
+.visu table.donnees { margin-top: 4px; }
+.visu-titre { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; font-size: 13px; color: var(--pale); }
+.visu-titre .pastille { font-size: 10.5px; padding: 3px 8px; }
+/* Comparaison : deux tuiles côte à côte */
+.comparaison { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: stretch; }
+.comparaison .cote-comp { padding: 14px 16px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--bord); }
+.comparaison .cote-comp.devant { background: var(--vert-doux); border-color: transparent; }
+.comparaison b { display: block; font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.comparaison .devant b { color: var(--vert); }
+.comparaison span { display: block; font-size: 14px; font-weight: 600; margin-top: 2px; }
+.comparaison small { display: block; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11.5px; color: var(--pale); }
+.comparaison .vs { align-self: center; font-size: 12px; color: var(--pale); }
+/* À retenir : la conclusion, séparée de la donnée mesurée */
+.a-retenir { display: flex; gap: 12px; padding: 14px 16px; border-radius: 14px; background: var(--accent-doux); }
+.a-retenir svg { flex: none; width: 18px; height: 18px; color: var(--accent); margin-top: 2px; }
+.a-retenir p { margin: 0; font-size: 15px; line-height: 1.55; }
+.a-retenir small { display: block; margin-top: 4px; font-size: 11.5px; color: var(--pale); }
+/* Actions et questions suggérées */
+.actions-reponse { display: flex; flex-wrap: wrap; gap: 8px; }
+.action { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 12px; border: 1px solid var(--bord); background: var(--surface); color: var(--texte); font-size: 13.5px; font-weight: 550; transition: .15s; }
+.action:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+.action i { font-style: normal; font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: var(--vert-doux); color: var(--vert); }
+.action i.paye { background: var(--accent-doux); color: var(--accent); }
+.suggestions-suivi { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.suggestions-suivi .titre-section { width: 100%; margin: 0 0 2px; }
+.chip-suivi { border: 0; border-radius: 999px; padding: 6px 12px; font-size: 13px; background: rgba(165,168,255,.08); color: var(--doux); box-shadow: inset 0 0 0 1px rgba(165,168,255,.16); transition: .15s; text-align: left; }
+.chip-suivi:hover { color: var(--texte); background: rgba(165,168,255,.16); }
+/* Accordéons : méthode, puis détails techniques (plus discrets) */
+.accordeon { border-top: 1px solid var(--bord); padding-top: 4px; }
+.accordeon + .accordeon { border-top: 0; padding-top: 0; }
+.accordeon-tete { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; color: var(--doux); padding: 8px 0; font-size: 14px; font-weight: 550; text-align: left; }
+.accordeon-tete:hover { color: var(--texte); }
+.accordeon-tete .chevron { margin-left: auto; width: 16px; height: 16px; transition: transform .25s; }
+.accordeon.ouvert .chevron { transform: rotate(180deg); }
+.accordeon-tete svg.ico { width: 16px; height: 16px; color: var(--accent); }
+.accordeon-corps { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s ease; }
+.accordeon.ouvert .accordeon-corps { grid-template-rows: 1fr; }
+.accordeon-contenu { overflow: hidden; min-height: 0; font-size: 14px; line-height: 1.6; color: var(--doux); }
+.accordeon-contenu > :first-child { margin-top: 4px; }
+.accordeon-contenu p { margin: 0 0 8px; }
+.accordeon-contenu ul { margin: 0 0 8px; padding-left: 18px; }
+.accordeon.technique .accordeon-tete { font-size: 12.5px; color: var(--pale); padding: 4px 0; }
+.accordeon.technique .accordeon-tete svg.ico { color: var(--pale); }
+.mesures { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11.5px; color: var(--pale); margin-bottom: 6px; }
+.non-disponible { font-size: 13.5px; color: var(--pale); font-style: italic; }
+/* Avatar : petit rebond de contentement quand une réponse arrive */
+.mascotte.content > span, .mascotte.content > svg { animation: rejouit .9s cubic-bezier(.3,.7,.3,1); }
+@keyframes rejouit { 0% { transform: scale(1) } 25% { transform: scale(1.06,.94) translateY(3px) } 55% { transform: scale(.97,1.04) translateY(-9px) } 80% { transform: scale(1.01,.99) } 100% { transform: scale(1) } }
+@media (max-width: 1100px) { .visu .barre, .visu .axe { grid-template-columns: 130px 1fr 56px; } .comparaison { grid-template-columns: 1fr; } .comparaison .vs { display: none; } }
+
+/* ---- Halo de l'avatar ----
+   Une lueur douce qui suit un peu la souris, s'intensifie quand Allergo réfléchit,
+   passe au vert quand une réponse arrive, puis revient lentement au blanc. */
+@property --halo-c { syntax: "<color>"; inherits: true; initial-value: rgb(255 255 255); }
+@property --halo-force { syntax: "<percentage>"; inherits: true; initial-value: 30%; }
+.paysage { --halo-c: rgb(255 255 255); --halo-force: 30%; transition: --halo-c 1.6s ease, --halo-force 1.2s ease; }
+.paysage[data-humeur="reflechit"] { --halo-c: rgb(196 200 255); --halo-force: 48%; }
+.paysage[data-humeur="reponse"]   { --halo-c: rgb(140 245 200); --halo-force: 42%; }
+.paysage[data-humeur="abstention"]{ --halo-c: rgb(255 220 165); --halo-force: 36%; }
+.paysage[data-humeur="erreur"]    { --halo-c: rgb(255 175 185); --halo-force: 36%; }
+.mascotte::before { inset: -16% -9%;
+  background: radial-gradient(closest-side circle at 50% 50%, color-mix(in srgb, var(--halo-c) var(--halo-force), transparent) 0%,
+    color-mix(in srgb, var(--halo-c) calc(var(--halo-force) * .55), transparent) 38%, color-mix(in srgb, var(--halo-c) 5%, transparent) 66%, transparent 100%);
+  filter: blur(6px); transform: translate3d(var(--gx, 0px), var(--gy, 0px), 0); transition: transform .9s cubic-bezier(.2,.8,.2,1);
+  animation: halo-vie 5s ease-in-out infinite; will-change: transform; }
+.paysage[data-humeur="reflechit"] .mascotte::before { animation-duration: 1.8s; }
+@keyframes halo-vie { 0%, 100% { opacity: .85; scale: 1 } 33% { opacity: 1; scale: 1.05 1 } 66% { opacity: .92; scale: .98 1.04 } }
+.visu [hidden] { display: none !important; }
+
+/* ---- Réponse allégée : moins de blocs, plus d'air ---- */
+.reponse-ia .carte-corps { gap: 12px; padding: 16px 20px 14px; }
+.titre-reponse { font-size: 18px; }
+.titre-reponse small { display: inline; margin-left: 8px; font-size: 12.5px; }
+.resume { font-size: 15.5px; }
+.kpi { padding: 12px 16px; gap: 14px; align-items: center; }
+.kpi-chiffre { font-size: 26px; }
+.kpi-detail { margin: -6px 0 0; font-size: 13px; color: var(--pale); }
+.reponse-ia .resume .chiffre-cle { font-size: 1.25em; }
+.visu .barre { padding: 3px 6px; }
+.visu .barres { gap: 4px; }
+.a-retenir { display: block; margin: 0; padding: 0 0 0 12px; border-left: 3px solid var(--accent); background: none; border-radius: 0; font-size: 14px; color: var(--doux); }
+.action { padding: 6px 12px; font-size: 13px; border-radius: 10px; }
+.plis { display: flex; flex-direction: column; border-top: 1px solid var(--bord); padding-top: 2px; }
+.plis .accordeon { border-top: 0; padding-top: 0; }
+.plis .accordeon-tete { padding: 6px 0; font-size: 13px; }
+.methode-liste { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 4px 0 10px; font-size: 13px; }
+.methode-liste dt { color: var(--pale); }
+.methode-liste dd { margin: 0; color: var(--texte); }
+/* ---- Réponse complète : paramètres, limites, jauge ---- */
+.parametres { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -4px; }
+.parametres span { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--bord); color: var(--doux); }
+.limites { margin: 0; padding: 10px 14px 10px 30px; border-radius: 12px; background: var(--ambre-doux); font-size: 12.5px; line-height: 1.5; color: var(--texte); }
+.limites li + li { margin-top: 3px; }
+.limites li::marker { color: var(--ambre); }
+.jauge { display: grid; gap: 4px; }
+.jauge-piste { position: relative; height: 14px; border-radius: 7px; background: var(--surface-2); overflow: hidden; }
+.jauge-piste i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; background: linear-gradient(90deg, #10b981, #34d399); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.jauge-piste b { position: absolute; top: 0; bottom: 0; background: rgba(255,255,255,.55); box-shadow: inset 0 0 0 1px rgba(15,118,110,.45); border-radius: 3px; }
+.jauge-echelle { display: flex; justify-content: space-between; font-size: 11px; color: var(--pale); }
+.jauge-legende { margin: 2px 0 0; font-size: 12.5px; color: var(--pale); }
+/* ---- Explorer ---- */
+.tuiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.tuile { background: var(--surface-2); border: 1px solid var(--bord); border-radius: 16px; padding: 14px 16px; }
+.tuile .etiquette { font-size: 12px; color: var(--doux); font-weight: 600; }
+.tuile .grand { font-size: 28px; font-weight: 800; letter-spacing: -.03em; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+.tuile .sous { font-size: 12px; color: var(--pale); line-height: 1.45; }
+.empile { display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 2px; margin: 8px 0 6px; }
+.empile i { display: block; height: 100%; }
+.legende { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--doux); }
+.legende span { display: inline-flex; align-items: center; gap: 6px; }
+.legende span::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+.panneau { border: 1px solid var(--bord); border-radius: 18px; padding: 18px; margin-bottom: 16px; background: var(--surface); }
+.panneau-tete { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.panneau-tete h3 { margin: 0; font-size: 16px; font-weight: 700; }
+.panneau-tete p { margin: 3px 0 0; font-size: 12.5px; color: var(--pale); }
+.filtres { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.segment { display: inline-flex; background: var(--surface-2); border: 1px solid var(--bord); border-radius: 10px; padding: 3px; }
+.segment button { border: 0; background: none; color: var(--doux); padding: 5px 10px; border-radius: 7px; font-size: 12.5px; font-weight: 600; }
+.segment button[aria-pressed="true"] { background: var(--surface); color: var(--texte); box-shadow: 0 1px 2px rgba(20,24,39,.12); }
+.choix { border: 1px solid var(--bord); background: var(--surface-2); color: var(--texte); border-radius: 10px; padding: 6px 10px; font-size: 12.5px; }
+.barres { display: grid; gap: 7px; }
+.barre { display: grid; grid-template-columns: minmax(150px, 34%) 1fr 64px; align-items: center; gap: 12px; border: 0; background: none; padding: 3px 4px; border-radius: 8px; text-align: left; color: var(--texte); }
+.barre:hover, .barre:focus-visible { background: var(--surface-2); outline: 0; }
+.barre .nom { min-width: 0; line-height: 1.25; }
+.barre .nom b { display: block; font-size: 13px; font-weight: 600; }
+.barre .nom small { display: block; font-size: 11.5px; color: var(--pale); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.piste { position: relative; height: 14px; background: repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), var(--grille) calc(25% - 1px) 25%); border-left: 1px solid var(--base); }
+.piste i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; background: var(--c, var(--serie-1)); transition: width .5s cubic-bezier(.2,.8,.2,1); }
+.barre .val { font-size: 13px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.axe { display: grid; grid-template-columns: minmax(150px, 34%) 1fr 64px; gap: 12px; font-size: 11px; color: var(--pale); margin-top: 6px; padding: 0 4px; }
+.axe div { display: flex; justify-content: space-between; }
+table.donnees { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.donnees th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--pale); font-weight: 700; padding: 8px; border-bottom: 1px solid var(--bord); }
+table.donnees td { padding: 8px; border-bottom: 1px solid var(--bord); font-variant-numeric: tabular-nums; }
+table.donnees td.n { text-align: right; } table.donnees th.n { text-align: right; }
+.fiche { display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: start; }
+.heros { background: var(--surface-2); border: 1px solid var(--bord); border-radius: 16px; padding: 16px; }
+.heros .code { font-size: 13px; color: var(--accent); font-weight: 600; }
+.heros .grand { font-size: 44px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+.heros .sous { font-size: 12.5px; color: var(--doux); }
+.anneau { width: 100%; height: 10px; border-radius: 5px; background: var(--grille); overflow: hidden; margin: 10px 0 4px; }
+.anneau i { display: block; height: 100%; background: var(--serie-1); border-radius: 0 4px 4px 0; transition: width .6s; }
+.etiquettes { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 14px; }
+.etiq { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--bord); color: var(--doux); }
+.etiq.forte { background: var(--accent-doux); color: var(--accent); border-color: transparent; font-weight: 600; }
+.recherche { position: relative; }
+.recherche input { width: 240px; border: 1px solid var(--bord); background: var(--surface-2); color: var(--texte); border-radius: 10px; padding: 7px 10px 7px 32px; font-size: 13px; outline: 0; }
+.recherche input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-doux); }
+.recherche svg { position: absolute; left: 10px; top: 50%; width: 14px; height: 14px; transform: translateY(-50%); color: var(--pale); }
+.recherche .complete { left: 0; right: auto; width: 320px; top: calc(100% + 4px); bottom: auto; }
+.note { font-size: 12px; color: var(--pale); margin-top: 10px; line-height: 1.5; }
+.squelette { height: 14px; border-radius: 6px; background: linear-gradient(90deg, var(--surface-2), var(--bord), var(--surface-2)); background-size: 200% 100%; animation: brille 1.2s infinite; margin: 8px 0; }
+.infobulle { position: fixed; z-index: 50; pointer-events: none; background: var(--surface); color: var(--texte); border: 1px solid var(--bord); border-radius: 10px; box-shadow: var(--ombre); padding: 8px 10px; font-size: 12.5px; line-height: 1.45; opacity: 0; transition: opacity .12s; max-width: 260px; }
+.infobulle.vu { opacity: 1; }
+.infobulle b { display: block; }
+
+/* ---- Méthode ---- */
+.illustration { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; align-items: center; background: linear-gradient(135deg, var(--accent-doux), var(--surface-2)); border: 1px solid var(--bord); border-radius: 20px; padding: 20px; margin-bottom: 18px; }
+.illustration svg { width: 100%; height: auto; }
+.illustration h3 { margin: 0 0 8px; font-size: 18px; }
+.illustration p { margin: 0 0 8px; color: var(--doux); line-height: 1.6; font-size: 14px; }
+.etapes-methode { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+.pas { border: 1px solid var(--bord); border-radius: 16px; padding: 16px; background: var(--surface); }
+.pas .rond { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); margin-bottom: 10px; }
+.pas h4 { margin: 0 0 6px; font-size: 14.5px; }
+.pas p { margin: 0; font-size: 13px; color: var(--doux); line-height: 1.55; }
+.regles { display: grid; gap: 8px; margin-bottom: 18px; }
+.regle { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--ambre-doux); color: var(--texte); font-size: 13.5px; line-height: 1.5; }
+.regle svg { flex: none; width: 18px; height: 18px; color: var(--ambre); margin-top: 1px; }
+.glossaire { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.terme { border: 1px solid var(--bord); border-radius: 14px; padding: 12px 14px; }
+.terme b { font-size: 13.5px; } .terme p { margin: 4px 0 0; font-size: 12.5px; color: var(--doux); line-height: 1.5; }
+.toast { position: absolute; left: 50%; bottom: 110px; transform: translate(-50%, 20px); background: #141827; color: #fff; padding: 9px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 6; }
+.toast.vu { opacity: 1; transform: translate(-50%, 0); }
+
+@keyframes halo { 0%,100% { opacity: .8 } 50% { opacity: 1 } }
+@keyframes flotte { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+@keyframes respire { 0%,100% { transform: scale(.92); opacity: .75 } 50% { transform: scale(1.08); opacity: 1 } }
+@keyframes monte { 0% { transform: translateY(0) scale(.6); opacity: 0 } 15% { opacity: 1 } 100% { transform: translateY(-560px) scale(1.1); opacity: 0 } }
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: 1 } 50% { transform: scale(1.35); opacity: .55 } }
+@keyframes cligne { 0%,93%,100% { transform: scaleY(1) } 96% { transform: scaleY(.1) } }
+@keyframes saute { 0%,80%,100% { transform: translateY(0); opacity: .5 } 40% { transform: translateY(-6px); opacity: 1 } }
+@keyframes entre { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+@keyframes rebond { 0% { transform: scale(.94) } 60% { transform: scale(1.03) } 100% { transform: scale(1) } }
+@keyframes brille { to { background-position: -200% 0 } }
+@keyframes lie { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-4px) } }
+.oeil { transform-box: fill-box; transform-origin: center; animation: cligne 4.5s infinite; }
+.allergene-anime { animation: lie 2.4s ease-in-out infinite; transform-box: fill-box; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .lueurs { display: none; } }
+
+@media (max-width: 1100px) { .tuiles { grid-template-columns: 1fr 1fr; } .fiche { grid-template-columns: 1fr; } .suggestions { grid-template-columns: 1fr; } }
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; min-height: 100vh; padding: 12px; gap: 12px; }
+  .paysage { min-height: 400px; }
+  .mascotte { width: 180px; height: 150px; }
+  .texte { min-height: 80vh; }
+  .haut { flex-direction: column; align-items: stretch; padding: 10px; }
+  .onglets { justify-content: space-between; }
+  .aide span:last-child, .statut { display: none; }
+  .illustration, .etapes-methode, .glossaire { grid-template-columns: 1fr; }
+  .barre, .axe { grid-template-columns: 110px 1fr 54px; }
+  .defile { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ Bloc 1 : le ciel, le nuage et sa bulle ============ -->
+  <section class="paysage" id="paysage" data-humeur="attente" aria-label="Allergo, l'assistant">
+    <div class="lueurs" id="lueurs"></div>
+    <div class="tete-paysage">
+      <button class="bouton-histo verre" id="btn-historique" type="button" title="Historique" aria-label="Afficher l'historique" aria-controls="historique" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 4.5v15" stroke="currentColor" stroke-width="1.8"/></svg>
+      </button>
+      <div class="marque verre">
+        <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/><path d="M7.5 15h9"/></svg></div>
+        <div><b>AllergyLab</b><span>Allergo, l'assistant de l'équipe 4</span></div>
+      </div>
+    </div>
+    <div class="scene">
+      <div class="bulle" id="bulle" aria-live="polite"><div class="dit" id="dit"></div><div class="raccourcis" id="raccourcis"></div></div>
+      <div class="mascotte" id="mascotte" role="button" tabindex="0" aria-label="Allergo : clique pour de l'aide"></div>
+    </div>
+    <div class="compteurs verre">
+      <div class="compteur"><b id="c-questions">0</b><span>questions</span></div>
+      <div class="compteur"><b id="c-reponses">0</b><span>réponses</span></div>
+      <div class="compteur"><b id="c-abstentions">0</b><span>abstentions</span></div>
+      <div class="compteur"><b id="c-cout">0 $</b><span>coût</span></div>
+    </div>
+  </section>
+
+  <!-- ============ Bloc 2 : Assistant, Explorer, Méthode ============ -->
+  <section class="texte">
+    <header class="haut">
+      <div class="onglets" role="tablist">
+        <button class="onglet" role="tab" aria-selected="true" data-vue="assistant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Assistant</button>
+        <button class="onglet" role="tab" aria-selected="false" data-vue="explorer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Explorer<span class="gratuit">gratuit</span></button>
+        <button class="onglet" role="tab" aria-selected="false" data-vue="methode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/></svg>Méthode</button>
+      </div>
+      <div class="actions">
+        <div class="statut" id="statut"><i></i><span id="statut-texte">Prêt</span></div>
+        <button class="bouton-2" id="nouveau" title="Nouvelle conversation"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nouvelle</button>
+      </div>
+    </header>
+
+    <!-- Assistant -->
+    <div class="vue active" id="vue-assistant" role="tabpanel">
+      <div class="defile" id="fil"></div>
+      <div class="saisie">
+        <div class="complete" id="complete" role="listbox"></div>
+        <div class="boite">
+          <textarea id="question" rows="1" placeholder="Pose ta question… (« arachide », « Bet », « Phl »…)" aria-label="Ta question" aria-autocomplete="list"></textarea>
+          <button class="envoyer" id="envoyer" aria-label="Envoyer" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+        <div class="aide"><span><kbd>Entrée</kbd> envoyer · <kbd>Maj</kbd>+<kbd>Entrée</kbd> à la ligne · <kbd>Tab</kbd> compléter</span><span>Calculé sur le serveur, sans modèle : aucun coût.</span></div>
+        <div class="toast" id="toast"></div>
+      </div>
+    </div>
+
+    <!-- Explorer -->
+    <div class="vue" id="vue-explorer" role="tabpanel">
+      <div class="defile">
+        <h2 class="titre-vue">Explorer les <em>sensibilisations</em></h2>
+        <p class="chapeau">Les mêmes outils que l'agent, appelés directement : aucun jeton, aucun coût. Chaque pourcentage est calculé parmi les patients réellement testés, au seuil de 0,3.</p>
+        <div class="tuiles" id="tuiles"><div class="tuile"><div class="squelette"></div><div class="squelette"></div></div><div class="tuile"><div class="squelette"></div></div><div class="tuile"><div class="squelette"></div></div><div class="tuile"><div class="squelette"></div></div></div>
+
+        <div class="panneau">
+          <div class="panneau-tete">
+            <div><h3>Allergènes les plus fréquents</h3><p id="classement-sous">Pourcentage de patients sensibilisés parmi les testés. Clique sur une barre pour sa fiche.</p></div>
+            <div class="filtres">
+              <div class="segment" id="f-puce" role="group" aria-label="Puce">
+                <button aria-pressed="true" data-v="">Toutes</button><button aria-pressed="false" data-v="ALEX">ALEX</button><button aria-pressed="false" data-v="ISAC_V1">ISAC V1</button><button aria-pressed="false" data-v="ISAC_V2">ISAC V2</button>
+              </div>
+              <select class="choix" id="f-categorie" aria-label="Catégorie"><option value="">Toutes catégories</option></select>
+              <select class="choix" id="f-nombre" aria-label="Nombre"><option>10</option><option selected>15</option><option>25</option><option>40</option></select>
+              <div class="segment" id="f-forme" role="group" aria-label="Affichage"><button aria-pressed="true" data-v="graphique">Graphique</button><button aria-pressed="false" data-v="tableau">Tableau</button></div>
+            </div>
+          </div>
+          <div id="classement"><div class="squelette"></div><div class="squelette"></div><div class="squelette"></div></div>
+        </div>
+
+        <div class="panneau" id="panneau-fiche">
+          <div class="panneau-tete">
+            <div><h3>Fiche allergène</h3><p>Prévalence parmi les testés, puce par puce, et ce que dit la nomenclature.</p></div>
+            <div class="recherche">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+              <input id="f-code" placeholder="Code ou nom : Ara_h_2, chat…" aria-label="Chercher un allergène" autocomplete="off">
+              <div class="complete" id="complete-fiche" role="listbox"></div>
+            </div>
+          </div>
+          <div id="fiche"></div>
+        </div>
+
+        <div class="panneau">
+          <div class="panneau-tete">
+            <div><h3>Données cliniques</h3><p>Répartition des codes parmi les patients renseignés. Le sens des codes est dans le dictionnaire officiel.</p></div>
+            <div class="filtres"><select class="choix" id="f-clinique" aria-label="Colonne clinique"></select></div>
+          </div>
+          <div id="clinique"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Méthode -->
+    <div class="vue" id="vue-methode" role="tabpanel">
+      <div class="defile">
+        <h2 class="titre-vue">Comment Allergo <em>raisonne</em></h2>
+        <p class="chapeau">Une réponse juste commence par le bon dénominateur. Voici ce que mesure une puce, comment l'équipe lit le tableau, et quand l'assistant préfère s'abstenir.</p>
+        <div class="illustration">
+          <svg viewBox="0 0 360 230" role="img" aria-label="Des IgE du sérum se fixent sur des allergènes déposés sur une puce">
+            <defs><linearGradient id="g-puce" x1="0" x2="1"><stop offset="0" stop-color="#c7d2fe"/><stop offset="1" stop-color="#ddd6fe"/></linearGradient></defs>
+            <rect x="20" y="170" width="320" height="34" rx="10" fill="url(#g-puce)" stroke="#a5b4fc"/>
+            <text x="180" y="222" text-anchor="middle" font-size="11" fill="#6b7280" font-family="Inter, sans-serif">puce : un allergène purifié par point</text>
+            <g font-family="Inter, sans-serif" font-size="10" fill="#4338ca" text-anchor="middle">
+              <circle cx="70" cy="170" r="11" fill="#fbbf24"/><text x="70" y="193">Bet v 1</text>
+              <path d="M170 160 l12 -10 l12 10 l-5 12 h-14z" fill="#34d399"/><text x="182" y="193">Ara h 2</text>
+              <rect x="276" y="158" width="20" height="16" rx="4" fill="#f472b6"/><text x="286" y="193">Fel d 1</text>
+            </g>
+            <!-- IgE fixées -->
+            <g stroke="#5b5bf0" stroke-width="5" stroke-linecap="round" fill="none">
+              <g class="allergene-anime"><path d="M70 152 L70 112 M70 112 L56 92 M70 112 L84 92"/></g>
+              <g class="allergene-anime" style="animation-delay:.6s"><path d="M182 146 L182 106 M182 106 L168 86 M182 106 L196 86"/></g>
+            </g>
+            <!-- IgE libre -->
+            <g stroke="#a5b4fc" stroke-width="5" stroke-linecap="round" fill="none" class="allergene-anime" style="animation-delay:1.2s"><path d="M286 70 L286 108 M286 70 L272 50 M286 70 L300 50" transform="rotate(180 286 79)"/></g>
+            <text x="70" y="80" text-anchor="middle" font-size="11" font-weight="700" fill="#312e81" font-family="Inter, sans-serif">IgE fixée</text>
+            <text x="286" y="40" text-anchor="middle" font-size="11" fill="#6b7280" font-family="Inter, sans-serif">aucune IgE fixée : négatif</text>
+            <text x="182" y="74" text-anchor="middle" font-size="11" font-weight="700" fill="#312e81" font-family="Inter, sans-serif">signal ≥ 0,3 : positif</text>
+          </svg>
+          <div>
+            <h3>Ce que mesure une puce à allergènes</h3>
+            <p>Le sérum du patient passe sur une puce où sont déposés des allergènes purifiés (des « composants moléculaires »). Les IgE spécifiques qui s'y fixent donnent un signal, en ISU-E pour les puces ISAC, en kUA/L pour ALEX.</p>
+            <p>Les trois puces du jeu ne portent pas les mêmes composants : un allergène absent d'une puce n'est simplement pas mesuré chez ses patients.</p>
+          </div>
+        </div>
+        <div class="titre-section">Trois questions avant chaque pourcentage</div>
+        <div class="etapes-methode">
+          <div class="pas"><div class="rond">1</div><h4>Le patient a-t-il été testé ?</h4><p>Une case vide veut dire « non mesuré sur sa puce », jamais « négatif ». Une valeur de -1 est une mesure invalide : on l'exclut.</p></div>
+          <div class="pas"><div class="rond">2</div><h4>Est-il positif ?</h4><p>Un dosage compte comme positif à partir de 0,3, le seuil usuel des fabricants. Le dictionnaire officiel ne le fixe pas : c'est un choix de l'équipe.</p></div>
+          <div class="pas"><div class="rond">3</div><h4>Parmi combien ?</h4><p>Le pourcentage se calcule parmi les testés. Comparer des nombres bruts avantagerait les allergènes présents sur plus de puces.</p></div>
+        </div>
+        <div class="titre-section">Quand Allergo s'abstient</div>
+        <div class="regles" id="regles"></div>
+        <div class="titre-section">Petit glossaire</div>
+        <div class="glossaire" id="glossaire"></div>
+      </div>
+    </div>
+  </section>
+</div>
+<!-- ============ Historique des conversations (le panneau du zip) ============ -->
+<div class="voile-histo" id="voile-histo" hidden></div>
+<aside class="historique verre" id="historique" aria-label="Historique des conversations">
+  <div class="sb-head">
+    <span class="sb-title">Historique</span>
+    <div class="sb-actions">
+      <button class="sb-new" id="histo-nouvelle" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Nouvelle</button>
+      <button class="sb-fermer" id="histo-fermer" type="button" aria-label="Fermer l'historique"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+  <label class="sb-search">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <input id="histo-q" type="search" placeholder="Rechercher" autocomplete="off" aria-label="Rechercher dans l'historique">
+  </label>
+  <nav class="sb-list" id="histo-liste"></nav>
+  <div class="sb-foot">
+    <span class="sb-user"><b>Enregistré dans ce navigateur</b><span>Rien n'est envoyé ailleurs</span></span>
+    <button class="sb-effacer" id="histo-effacer" type="button">Effacer</button>
+  </div>
+</aside>
+<div class="infobulle" id="infobulle" role="tooltip"></div>
+
+<template id="nuage-secours">
+  <svg viewBox="0 0 120 90" aria-hidden="true">
+    <path d="M30 78a22 22 0 0 1-2-44 26 26 0 0 1 50-8 20 20 0 0 1 16 36 16 16 0 0 1-4 16z" fill="#f5f8ff" stroke="#9db7ff" stroke-width="3"/>
+    <ellipse class="oeil" cx="50" cy="52" rx="5" ry="8" fill="#1e2a5a"/><ellipse class="oeil" cx="70" cy="52" rx="5" ry="8" fill="#1e2a5a"/>
+  </svg>
+</template>
+
+<script>
+/* ============================================================
+   Données de la page
+   ============================================================ */
+const EXEMPLES = [
+  ["Prévalence", "Quel pourcentage des patients testés est sensibilisé à Ara_h_2 ?", '<path d="M12 3v18M3 12h18"/>'],
+  ["Classement", "Quels sont les cinq allergènes les plus fréquents parmi les patients testés ?", '<path d="M4 20V10M10 20V4M16 20v-7"/>'],
+  ["Statistique", "Quel est l'âge moyen des patients ?", '<path d="M8 4v16M16 4v16M3 8h10M11 16h10"/>'],
+  ["Test d'abstention", "Ara_h_2 provoque-t-il des réactions graves ?", '<circle cx="12" cy="12" r="9"/><path d="M7 7l10 10"/>'],
+];
+const REFLEXION = [["thinking", "Je lis la question…"], ["searching", "Je cherche les bonnes colonnes…"], ["reading", "Je compte les patients réellement testés…"], ["computing", "Je calcule et je vérifie…"]];
+const REACTION = { reponse: "happy", abstention: "confused", erreur: "sad" };
+const PUCES = [["ALEX", "ALEX"], ["ISAC_V1", "ISAC V1"], ["ISAC_V2", "ISAC V2"]];
+const REGLES = [
+  "L'information demandée n'existe dans aucune colonne du tableau (une ville, un poids, un nom…).",
+  "La réponse dépend du sens d'un code que le dictionnaire officiel ne précise pas (quel code de Gender est quel sexe, le vrai nom d'une région anonymisée).",
+  "La question demande une cause, un diagnostic, un traitement ou un conseil médical pour une personne.",
+  "La question généralise à toute la population : ces patients ont été vus en allergologie, ce n'est pas un échantillon de la population française.",
+  "Moins de 30 patients sont testés ou renseignés : le pourcentage serait trop fragile.",
+  "La question compare des valeurs brutes de dosage entre puces : les unités ne sont pas les mêmes.",
+];
+const GLOSSAIRE = [
+  ["Composant moléculaire", "Une protéine allergénique purifiée, nommée d'après son espèce : Ara h 2 = Arachis hypogaea, composant 2."],
+  ["PR-10", "Protéines de défense des plantes, proches de Bet v 1 (bouleau) : à l'origine de réactions croisées pollen-aliments, souvent légères."],
+  ["LTP", "Protéines de transfert de lipides, résistantes à la chaleur et à la digestion (Pru p 3 de la pêche)."],
+  ["Albumines 2S, vicillines, légumines", "Protéines de stockage des graines (Ara h 2, Ara h 1, Ara h 3) : marqueurs des allergies aux arachides et fruits à coque."],
+  ["Profilines, polcalcines", "Panallergènes présents dans de nombreuses espèces : une sensibilisation peut refléter une réactivité croisée."],
+  ["CCD (MUXF3)", "Déterminants glucidiques : leur reconnaissance peut donner des positivités sans pertinence clinique."],
+  ["ISU-E, kUA/L", "Unités des puces ISAC et ALEX. Elles ne se comparent pas directement : on compare des positivités, pas des valeurs brutes."],
+  ["Abstention", "Une réponse qui dit « je ne peux pas conclure », avec sa raison. Elle vaut mieux qu'une réponse inventée."],
+];
+const ICONES = {
+  reponse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>',
+  abstention: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 12h12"/></svg>',
+  erreur: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 11v6M12 7h.01"/></svg>',
+  copier: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+  reposer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+  attention: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></svg>',
+};
+const LIBELLES = { reponse: "Réponse", abstention: "Abstention", erreur: "Erreur", info: "Info · gratuit" };
+
+const $ = (id) => document.getElementById(id);
+const fil = $("fil"), champ = $("question"), bouton = $("envoyer");
+const stats = { questions: 0, reponses: 0, abstentions: 0, cout: 0 };
+let occupe = false, avatar = null, COLONNES = { dosage: [], clinique: [], noms: {} };
+const pret = fetch("/colonnes").then((r) => r.json()).then((c) => { COLONNES = c; }).catch(() => {});
+
+/* ============================================================
+   Petits outils
+   ============================================================ */
+function el(balise, classe, texte) {
+  const n = document.createElement(balise);
+  if (classe) n.className = classe;
+  if (texte !== undefined) n.textContent = texte; // textContent : un texte venu du modèle ne s'exécute jamais
+  return n;
+}
+function svgIcone(chemins) { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${chemins}</svg>`; }
+function nombre(v) { return typeof v === "number" ? v.toLocaleString("fr-FR") : String(v); }
+function pct(v) { return v === null || v === undefined ? "—" : v.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " %"; }
+function dollars(x) { return (x >= 0.01 ? x.toFixed(4) : x.toFixed(6)).replace(".", ",") + " $"; }
+function joli(code) { return code.replace(/_/g, " "); } // Ara_h_2 -> Ara h 2, l'écriture de la nomenclature
+function nomDe(code) { const n = COLONNES.noms[code]; return n && n.source ? n.source : ""; }
+function toast(texte) { const t = $("toast"); t.textContent = texte; t.classList.add("vu"); clearTimeout(t.minuteur); t.minuteur = setTimeout(() => t.classList.remove("vu"), 1600); }
+function ecrire(texte) { montrer("assistant"); champ.value = texte; ajuster(); champ.focus(); champ.setSelectionRange(texte.length, texte.length); }
+async function lire(chemin) { const r = await fetch(chemin); const j = await r.json(); if (!r.ok) throw new Error(j.erreur || "erreur"); return j; }
+function simplifier(t) { return t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
+
+// Infobulle partagée par tous les graphiques
+const bulleInfo = $("infobulle");
+function infobulle(cible, contenu) {
+  const montrerBulle = (e) => {
+    bulleInfo.innerHTML = ""; contenu(bulleInfo); bulleInfo.classList.add("vu");
+    const r = cible.getBoundingClientRect(); const x = e && e.clientX ? e.clientX : r.left + r.width / 2;
+    const y = e && e.clientY ? e.clientY : r.top;
+    bulleInfo.style.left = Math.min(window.innerWidth - 270, x + 12) + "px"; bulleInfo.style.top = Math.max(8, y - bulleInfo.offsetHeight - 10) + "px";
+  };
+  cible.addEventListener("mousemove", montrerBulle); cible.addEventListener("focus", montrerBulle);
+  cible.addEventListener("mouseleave", () => bulleInfo.classList.remove("vu")); cible.addEventListener("blur", () => bulleInfo.classList.remove("vu"));
+}
+
+/* ============================================================
+   Le nuage
+   ============================================================ */
+// Moteur de Bible Strong Avatar Lab (MIT), version 1.2.1 figée ; le personnage est le nôtre.
+// L'adresse est coupée en deux : « nom@version » ressemble à une adresse e-mail, qu'un test du kit refuse.
+const MOTEUR = "https://cdn.jsdelivr.net/npm/@bible-strong/avatar-web" + "@1.2.1/+esm";
+async function chargerNuage() {
+  try {
+    const [module, personnage] = await Promise.all([import(MOTEUR), fetch("/avatar/cumulus.avatar.json").then((r) => r.json())]);
+    avatar = module.createAvatar("#mascotte", { character: personnage, state: "waking", size: "100%", followPointer: true, ariaLabel: "Allergo" });
+    $("mascotte").classList.add("vivant");
+  } catch (e) {
+    console.warn("Moteur d'avatar indisponible : le nuage dessiné le remplace.", e);
+    $("mascotte").appendChild($("nuage-secours").content.firstElementChild.cloneNode(true));
+  }
+}
+function humeur(etatAvatar, couleur) { if (avatar) avatar.setState(etatAvatar); $("paysage").dataset.humeur = couleur; }
+function dire(texte, { detail, valeur, raccourcis = [] } = {}) {
+  const d = $("dit"); d.textContent = texte;
+  if (valeur !== undefined) d.appendChild(el("span", "valeur-bulle", valeur));
+  if (detail) d.appendChild(el("span", "detail", detail));
+  const r = $("raccourcis"); r.innerHTML = "";
+  for (const [libelle, action, paye] of raccourcis) {
+    const b = el("button", "puce-action", libelle); b.appendChild(el("i", paye ? "paye" : "", paye ? "1 question" : "gratuit"));
+    b.onclick = action; r.appendChild(b);
+  }
+  const b = $("bulle"); b.classList.remove("change"); void b.offsetWidth; b.classList.add("change");
+}
+const AIDE = () => [
+  ["Explorer les données", () => montrer("explorer")],
+  ["Ma méthode", () => montrer("methode")],
+  ["Une question au hasard", () => envoyer(EXEMPLES[Math.floor(Math.random() * EXEMPLES.length)][1]), true],
+];
+function accueillir() { humeur("idle", "attente"); dire("Bonjour, je suis Allergo !", { detail: "Pose-moi une question sur les allergies, ou choisis :", raccourcis: AIDE() }); }
+function cliquerNuage() {
+  if (occupe) { dire("Je travaille, encore un instant…"); return; }
+  if (avatar) avatar.poke("bounce");
+  dire("Comment puis-je t'aider ?", { raccourcis: AIDE() });
+}
+function lueurs() {
+  const z = $("lueurs");
+  for (let i = 0; i < 14; i++) {
+    const p = el("i"); p.style.left = 10 + Math.random() * 80 + "%";
+    p.style.animationDuration = 7 + Math.random() * 8 + "s"; p.style.animationDelay = -Math.random() * 12 + "s";
+    const t = 3 + Math.random() * 5; p.style.width = p.style.height = t + "px"; z.appendChild(p);
+  }
+}
+
+/* ============================================================
+   Onglets
+   ============================================================ */
+let explorerCharge = false;
+function montrer(vue) {
+  document.querySelectorAll(".onglet").forEach((o) => o.setAttribute("aria-selected", String(o.dataset.vue === vue)));
+  document.querySelectorAll(".vue").forEach((v) => v.classList.toggle("active", v.id === "vue-" + vue));
+  if (vue === "explorer") {
+    if (!explorerCharge) { explorerCharge = true; chargerExplorer(); }
+    if (!occupe) { humeur("curious", "attente"); dire("Explore librement, c'est gratuit !", { detail: "Clique sur une barre pour voir la fiche d'un allergène." }); }
+  } else if (vue === "methode" && !occupe) { humeur("proud", "attente"); dire("Voici comment je raisonne.", { detail: "Le bon dénominateur d'abord." }); }
+  else if (vue === "assistant" && !occupe) accueillir();
+}
+document.querySelectorAll(".onglet").forEach((o) => { o.onclick = () => montrer(o.dataset.vue); });
+
+/* ============================================================
+   Graphique en barres (une seule série, ou une couleur par puce)
+   ============================================================ */
+function graphiqueBarres(lignes, { max = 100, couleur, surClic, infos } = {}) {
+  const z = el("div", "barres");
+  for (const l of lignes) {
+    const b = el("button", "barre"); b.type = "button";
+    const nom = el("div", "nom"); nom.append(el("b", "", l.titre)); if (l.sous) nom.append(el("small", "", l.sous));
+    const piste = el("div", "piste"); const remplissage = el("i");
+    remplissage.style.width = "0%"; if (l.couleur || couleur) remplissage.style.setProperty("--c", l.couleur || couleur);
+    piste.appendChild(remplissage); requestAnimationFrame(() => { remplissage.style.width = Math.max(0.5, (100 * l.valeur) / max) + "%"; });
+    b.append(nom, piste, el("div", "val", pct(l.valeur)));
+    if (surClic) b.onclick = () => surClic(l); else b.style.cursor = "default";
+    if (infos) infobulle(b, (bul) => infos(bul, l));
+    z.appendChild(b);
+  }
+  const axe = el("div", "axe"); const graduations = el("div");
+  for (let i = 0; i <= 4; i++) graduations.appendChild(el("span", "", pct((max * i) / 4).replace(",0", "")));
+  axe.append(el("div"), graduations, el("div")); z.appendChild(axe);
+  return z;
+}
+function tableau(entetes, lignes) {
+  const t = el("table", "donnees"); const tr = el("tr");
+  entetes.forEach(([texte, num]) => tr.appendChild(el("th", num ? "n" : "", texte)));
+  const thead = el("thead"); thead.appendChild(tr); t.appendChild(thead); const tb = el("tbody");
+  for (const l of lignes) { const r = el("tr"); l.forEach((v, i) => r.appendChild(el("td", entetes[i][1] ? "n" : "", v))); tb.appendChild(r); }
+  t.appendChild(tb); return t;
+}
+function infosAllergene(bul, l) {
+  bul.appendChild(el("b", "", `${joli(l.code)}${l.source ? " · " + l.source : ""}`));
+  if (l.latin) { const e = el("em", "latin", l.latin); bul.appendChild(e); bul.appendChild(el("br")); }
+  bul.appendChild(document.createTextNode(`${pct(l.pourcentage)} · ${nombre(l.positifs)} positifs sur ${nombre(l.testes)} testés`));
+  if (l.famille) { bul.appendChild(el("br")); bul.appendChild(document.createTextNode(l.famille)); }
+}
+
+/* ============================================================
+   Explorer
+   ============================================================ */
+const filtre = { puce: "", categorie: "", nombre: 15, forme: "graphique" };
+function segment(id, cle, rappel) {
+  $(id).querySelectorAll("button").forEach((b) => {
+    b.onclick = () => { $(id).querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); filtre[cle] = b.dataset.v; rappel(); };
+  });
+}
+async function chargerExplorer() {
+  await pret;
+  // Tuiles
+  try {
+    const r = await lire("/explorer/resume");
+    const t = $("tuiles"); t.innerHTML = "";
+    const patients = el("div", "tuile");
+    patients.append(el("div", "etiquette", "Patients"), el("div", "grand", nombre(r.patients)));
+    const pile = el("div", "empile"); const leg = el("div", "legende");
+    for (const [code, libelle] of PUCES) {
+      const n = r.par_puce[code] || 0; const i = el("i"); i.style.width = (100 * n) / r.patients + "%"; i.style.background = `var(--puce-${code})`;
+      infobulle(i, (b) => { b.appendChild(el("b", "", libelle)); b.appendChild(document.createTextNode(`${nombre(n)} patients (${pct((100 * n) / r.patients)})`)); });
+      pile.appendChild(i); const s = el("span", "", `${libelle} ${nombre(n)}`); s.style.setProperty("--c", `var(--puce-${code})`); leg.appendChild(s);
+    }
+    patients.append(pile, leg);
+    const allergenes = el("div", "tuile");
+    allergenes.append(el("div", "etiquette", "Allergènes mesurés"), el("div", "grand", nombre(r.allergenes)),
+      el("div", "sous", PUCES.map(([c, l]) => `${l} : ${r.allergenes_par_puce[c]}`).join(" · ")));
+    const seuil = el("div", "tuile");
+    seuil.append(el("div", "etiquette", "Seuil de positivité"), el("div", "grand", nombre(r.seuil)), el("div", "sous", "ISU-E (ISAC) ou kUA/L (ALEX) · choix de l'équipe"));
+    const minimum = el("div", "tuile");
+    minimum.append(el("div", "etiquette", "Minimum pour conclure"), el("div", "grand", nombre(r.minimum_patients)), el("div", "sous", "patients testés ; en dessous, Allergo s'abstient"));
+    t.append(patients, allergenes, seuil, minimum);
+  } catch (e) { $("tuiles").textContent = "Résumé indisponible."; }
+  // Filtres du classement
+  const cats = [...new Set(Object.values(COLONNES.noms).map((n) => n.categorie).filter(Boolean))].sort();
+  cats.forEach((c) => { const o = el("option", "", c); o.value = c; $("f-categorie").appendChild(o); });
+  segment("f-puce", "puce", dessinerClassement); segment("f-forme", "forme", dessinerClassement);
+  $("f-categorie").onchange = (e) => { filtre.categorie = e.target.value; dessinerClassement(); };
+  $("f-nombre").onchange = (e) => { filtre.nombre = Number(e.target.value); dessinerClassement(); };
+  dessinerClassement();
+  // Clinique
+  const cliniques = COLONNES.clinique.filter((c) => !["Patient_ID", "French_Residence_Department"].includes(c));
+  cliniques.forEach((c) => { const o = el("option", "", c); o.value = c; $("f-clinique").appendChild(o); });
+  $("f-clinique").value = "Skin_Symptoms"; $("f-clinique").onchange = dessinerClinique; dessinerClinique();
+  // Fiche par défaut
+  brancherRechercheFiche(); ouvrirFiche("Ara_h_2", false);
+}
+const cacheClassement = {};
+async function dessinerClassement() {
+  const z = $("classement"); z.innerHTML = '<div class="squelette"></div><div class="squelette"></div><div class="squelette"></div>';
+  try {
+    const cle = filtre.puce || "toutes";
+    cacheClassement[cle] ??= await lire("/explorer/classement?puce=" + encodeURIComponent(filtre.puce));
+    let lignes = cacheClassement[cle];
+    if (filtre.categorie) lignes = lignes.filter((l) => l.categorie === filtre.categorie);
+    const total = lignes.length; lignes = lignes.slice(0, filtre.nombre);
+    z.innerHTML = "";
+    if (!lignes.length) { z.appendChild(el("div", "note", "Aucun allergène de cette catégorie n'est testé chez au moins 30 patients de cette puce.")); return; }
+    $("classement-sous").textContent = `${lignes.length} premiers sur ${total} allergènes testés chez au moins 30 patients${filtre.puce ? " de la puce " + filtre.puce.replace("_", " ") : ""}. Clique sur une barre pour sa fiche.`;
+    if (filtre.forme === "tableau") {
+      z.appendChild(tableau([["Allergène"], ["Source"], ["Famille"], ["Testés", 1], ["Positifs", 1], ["%", 1]],
+        lignes.map((l) => [joli(l.code), l.source || "—", l.famille || "—", nombre(l.testes), nombre(l.positifs), pct(l.pourcentage)])));
+    } else {
+      const max = Math.min(100, Math.ceil((lignes[0].pourcentage + 2) / 10) * 10);
+      z.appendChild(graphiqueBarres(lignes.map((l) => ({ ...l, titre: joli(l.code), sous: l.source || l.categorie || "", valeur: l.pourcentage })),
+        { max, couleur: "var(--serie-1)", surClic: (l) => ouvrirFiche(l.code, true), infos: infosAllergene }));
+    }
+  } catch (e) { z.textContent = "Classement indisponible : " + e.message; }
+}
+async function ouvrirFiche(code, defiler) {
+  const z = $("fiche"); z.innerHTML = '<div class="squelette"></div><div class="squelette"></div>';
+  if (defiler) $("panneau-fiche").scrollIntoView({ behavior: "smooth", block: "start" });
+  try {
+    const f = await lire("/explorer/allergene?code=" + encodeURIComponent(code));
+    const e = f.ensemble; z.innerHTML = "";
+    const grille = el("div", "fiche");
+    const heros = el("div", "heros");
+    heros.append(el("div", "code mono", joli(code)), el("div", "grand", pct(e.pourcentage_parmi_testes)),
+      el("div", "sous", `${nombre(e.patients_positifs)} positifs sur ${nombre(e.patients_testes)} patients testés`));
+    const anneau = el("div", "anneau"); const a = el("i"); a.style.width = "0%"; anneau.appendChild(a); heros.appendChild(anneau);
+    requestAnimationFrame(() => { a.style.width = (e.pourcentage_parmi_testes || 0) + "%"; });
+    const demander = el("button", "bouton-1", "Demander à Allergo"); demander.style.marginTop = "12px";
+    demander.onclick = () => ecrire(`Quel pourcentage des patients testés est sensibilisé à ${code} ?`);
+    heros.appendChild(demander);
+    const droite = el("div");
+    const et = el("div", "etiquettes");
+    if (f.source) et.appendChild(el("span", "etiq forte", f.source));
+    if (f.latin) { const s = el("span", "etiq"); s.appendChild(el("em", "latin", f.latin)); et.appendChild(s); }
+    if (f.famille) et.appendChild(el("span", "etiq", f.famille));
+    if (f.categorie) et.appendChild(el("span", "etiq", f.categorie));
+    if (!f.source) et.appendChild(el("span", "etiq", "Source non renseignée dans la nomenclature de l'équipe"));
+    droite.appendChild(et);
+    droite.appendChild(el("div", "titre-section", "Puce par puce"));
+    const lignes = f.par_puce.map((p) => ({ titre: p.groupe.replace("_", " "), sous: `${nombre(p.patients_positifs)} / ${nombre(p.patients_testes)} testés`, valeur: p.pourcentage_parmi_testes || 0, couleur: `var(--puce-${p.groupe})`, p }));
+    const max = Math.min(100, Math.ceil((Math.max(...lignes.map((l) => l.valeur), 1) + 2) / 10) * 10);
+    droite.appendChild(graphiqueBarres(lignes, { max, infos: (b, l) => { b.appendChild(el("b", "", l.titre)); b.appendChild(document.createTextNode(`${pct(l.valeur)} · ${l.sous}`)); } }));
+    const absentes = PUCES.filter(([c]) => !f.par_puce.some((p) => p.groupe === c)).map(([, l]) => l);
+    const note = el("div", "note", `Mesuré sur : ${e.puces_qui_le_mesurent.map((p) => p.replace("_", " ")).join(", ")}.` +
+      (absentes.length ? ` Non mesuré sur ${absentes.join(", ")} : ces patients sont exclus du calcul, pas comptés négatifs.` : "") +
+      (e.mesures_invalides_exclues ? ` ${e.mesures_invalides_exclues} mesure(s) invalide(s) exclue(s).` : "") +
+      " Les unités diffèrent d'une puce à l'autre : on compare des positivités, pas des valeurs.");
+    droite.appendChild(note);
+    grille.append(heros, droite); z.appendChild(grille);
+    $("f-code").value = joli(code);
+  } catch (err) { z.textContent = "Fiche indisponible : " + err.message; }
+}
+function brancherRechercheFiche() {
+  const champFiche = $("f-code"), liste = $("complete-fiche");
+  champFiche.oninput = () => {
+    const q = simplifier(champFiche.value.trim()); liste.innerHTML = "";
+    if (q.length < 2) { liste.classList.remove("ouvert"); return; }
+    const trouves = COLONNES.dosage.filter((c) => simplifier(c).replace(/_/g, " ").includes(q.replace(/_/g, " ")) || simplifier(nomDe(c)).includes(q) || simplifier((COLONNES.noms[c] || {}).latin || "").includes(q)).slice(0, 8);
+    trouves.forEach((c) => {
+      const b = el("button"); b.append(el("span", "mono", joli(c)), el("small", "", nomDe(c)));
+      b.onmousedown = (e) => { e.preventDefault(); liste.classList.remove("ouvert"); ouvrirFiche(c, false); }; liste.appendChild(b);
+    });
+    liste.classList.toggle("ouvert", trouves.length > 0);
+  };
+  champFiche.onblur = () => setTimeout(() => liste.classList.remove("ouvert"), 100);
+  champFiche.onkeydown = (e) => { if (e.key === "Enter" && liste.firstChild) { e.preventDefault(); liste.firstChild.onmousedown(e); } };
+}
+async function dessinerClinique() {
+  const colonne = $("f-clinique").value, z = $("clinique");
+  z.innerHTML = '<div class="squelette"></div><div class="squelette"></div>';
+  try {
+    const r = await lire("/explorer/clinique?colonne=" + encodeURIComponent(colonne));
+    z.innerHTML = "";
+    const lignes = Object.entries(r.codes).map(([code, v]) => ({ titre: `Code ${code}`, sous: `${nombre(v.patients)} patients`, valeur: v.pourcentage || 0 }));
+    const max = Math.min(100, Math.ceil((Math.max(...lignes.map((l) => l.valeur), 1) + 2) / 10) * 10);
+    z.appendChild(graphiqueBarres(lignes, { max, couleur: "var(--serie-1)", infos: (b, l) => { b.appendChild(el("b", "", l.titre)); b.appendChild(document.createTextNode(`${pct(l.valeur)} des renseignés · ${l.sous}`)); } }));
+    z.appendChild(el("div", "note", `${nombre(r.patients_renseignes)} patients renseignés. Exclus : ${nombre(r.non_renseignes_code_9)} « non renseigné » (code 9) et ${nombre(r.cases_vides)} case(s) vide(s).` +
+      (r.plusieurs_codes_possibles ? " Un patient peut avoir plusieurs codes : les pourcentages peuvent dépasser 100 % au total." : "")));
+  } catch (e) { z.textContent = "Répartition indisponible : " + e.message; }
+}
+
+/* ============================================================
+   Méthode
+   ============================================================ */
+REGLES.forEach((r) => { const d = el("div", "regle"); d.innerHTML = ICONES.attention; d.appendChild(el("span", "", r)); $("regles").appendChild(d); });
+GLOSSAIRE.forEach(([t, d]) => { const x = el("div", "terme"); x.append(el("b", "", t), el("p", "", d)); $("glossaire").appendChild(x); });
+
+/* ============================================================
+   Assistant
+   ============================================================ */
+function vide() {
+  fil.innerHTML = "";
+  const v = el("div", "vide");
+  const h = el("h2"); h.innerHTML = "Bonjour, je suis votre <em>analyste</em>."; v.appendChild(h);
+  v.appendChild(el("p", "chapeau", "Posez une question sur les 4 271 patients du jeu Allergen Chip Challenge. Je calcule avec des méthodes fixées à l'avance, je vérifie chaque résultat (EVIDENCE), et je m'abstiens quand les données ne permettent pas de conclure. Sans modèle, je reconnais un nombre limité de formulations : partez des exemples."));
+  v.appendChild(el("div", "titre-section", "Pour commencer"));
+  const g = el("div", "suggestions");
+  EXEMPLES.forEach(([type, texte, icone]) => {
+    const b = el("button", "suggestion"); const n = el("div", "num"); n.innerHTML = svgIcone(icone); b.appendChild(n);
+    const t = el("div"); t.append(el("small", "", type), el("span", "", texte)); b.appendChild(t);
+    b.onclick = () => envoyer(texte); g.appendChild(b);
+  });
+  v.appendChild(g); fil.appendChild(v);
+  accueillir();
+}
+function viderSiAccueil() { if (fil.querySelector(".vide")) fil.innerHTML = ""; }
+function enBas() { fil.scrollTop = fil.scrollHeight; }
+function messageMoi(texte) { const m = el("div", "message moi"); m.appendChild(el("div", "bulle-moi", texte)); fil.appendChild(m); enBas(); }
+function carte(etat) {
+  const m = el("div", "message"); const c = el("div", "carte"); const corps = el("div", "carte-corps");
+  const entete = el("div", "entete-carte");
+  const p = el("span", "pastille " + etat); p.innerHTML = ICONES[etat]; p.appendChild(document.createTextNode(LIBELLES[etat]));
+  const outils = el("div", "outils-carte"); entete.append(p, outils); corps.appendChild(entete);
+  c.appendChild(corps); m.appendChild(c); fil.appendChild(m);
+  return { m, c, corps, outils };
+}
+function icone(nom, titre, action) { const b = el("button", "icone"); b.innerHTML = ICONES[nom]; b.title = titre; b.setAttribute("aria-label", titre); b.onclick = action; return b; }
+function attente() {
+  const m = el("div", "message attente"); const c = el("div", "carte"); const corps = el("div", "carte-corps");
+  const o = el("div", "ondes"); o.append(el("i"), el("i"), el("i"));
+  const phrase = el("span", "", REFLEXION[0][1]); const chrono = el("span", "chrono", "0 s");
+  corps.append(o, phrase, chrono); c.appendChild(corps); m.appendChild(c); fil.appendChild(m); enBas();
+  const debut = Date.now(); let i = 0;
+  humeur(REFLEXION[0][0], "reflechit"); dire(REFLEXION[0][1]);
+  const t1 = setInterval(() => { chrono.textContent = Math.round((Date.now() - debut) / 1000) + " s"; }, 500);
+  const t2 = setInterval(() => { i = (i + 1) % REFLEXION.length; humeur(REFLEXION[i][0], "reflechit"); dire(REFLEXION[i][1]); phrase.textContent = REFLEXION[i][1]; }, 2600);
+  return () => { clearInterval(t1); clearInterval(t2); m.remove(); };
+}
+/* ============================================================
+   Mise en forme d'une réponse
+   Le serveur envoie la réponse de l'agent (etat, valeur, texte) et, quand un outil l'a
+   calculé, le résultat structuré lui-même : r.analyse (voir equipe/outils/analyses.py).
+   L'affichage se choisit avec analyse.type et lit analyse.lignes : aucun chiffre n'est
+   cherché dans une phrase, aucune unité n'est devinée.
+   ============================================================ */
+const allerA = (code) => () => { montrer("explorer"); setTimeout(() => ouvrirFiche(code, true), 300); };
+const nomDeLigne = (l) => l.libelle || joli(l.code);
+const nomPuce = (p) => (p === "toutes" ? "toutes puces" : p.replace("_", " "));
+const virgule = (x) => String(x).replace(".", ",");
+const effectifs = (l) => `${nombre(l.patients_positifs)} sur ${nombre(l.patients_testes)} testés`;
+const intervalle = (l) => (l.intervalle_confiance_95 ? `IC 95 % : ${pct(l.intervalle_confiance_95[0])} à ${pct(l.intervalle_confiance_95[1])}` : "");
+
+// Les paramètres réellement appliqués, lus dans le résultat
+function puces(a, extra = []) {
+  const p = a.parametres;
+  const signe = { ">=": "≥", ">": ">", "<=": "≤", "<": "<" }[p.comparateur] || p.comparateur;
+  return [`Puce : ${nomPuce(p.puce)}`, `Seuil : dosage ${signe} ${virgule(p.seuil)}`, `Minimum : ${p.minimum_patients_testes} testés`, ...extra];
+}
+function methode(a) {
+  const m = a.methode, lignes = [["Indicateur", m.indicateur], ["Dénominateur", m.denominateur]];
+  if (m.tri) lignes.push(["Tri", m.tri]);
+  lignes.push(["Arrondi", `${m.arrondi_affichage} décimale, le même pour le texte, le tableau et le graphique`]);
+  if (a.source) lignes.push(["Données", `empreinte ${String(a.source.empreinte_donnees || "inconnue").slice(0, 12)}…, calcul v${a.source.version_calcul}`]);
+  return lignes;
+}
+
+// De la réponse au contenu à afficher. Rien n'est dessiné ici.
+function structurer(question, r) {
+  const s = { type: "texte", titre: "Réponse", resume: [], parametres: [], limites: [], conclusion: "", actions: [], methode: [], justification: r.texte, bulle: "J'ai trouvé !", detail: "" };
+  if (r.etat === "erreur") {
+    return { ...s, type: "erreur", titre: "Un problème est survenu", resume: [r.texte], justification: "", actions: [["Réessayer", () => envoyer(question), true]],
+      bulle: "Oups, un problème.", detail: "Le panneau de droite dit quoi faire." };
+  }
+  if (r.etat === "abstention") {
+    return { ...s, type: "abstention", titre: "Je préfère m'abstenir", resume: [r.texte], justification: "",
+      actions: [["Reformuler", () => ecrire(question)], ["Voir ma méthode", () => montrer("methode")]],
+      bulle: "Je préfère m'abstenir.", detail: "Les données ne permettent pas de conclure." };
+  }
+  const a = r.analyse;
+  if (a && a.type === "classement_allergenes") {
+    const p = a.parametres, n = a.lignes.length;
+    Object.assign(s, { type: "classement", lignes: a.lignes, titre: n ? `Les ${n} allergènes les plus fréquents` : "Aucun allergène à classer", sousTitre: nomPuce(p.puce) });
+    s.parametres = puces(a, [`${n} sur ${a.nombre_eligibles} éligibles`]);
+    s.limites = a.limites; s.methode = methode(a);
+    if (!n) { s.resume = ["Aucun allergène n'atteint le minimum de patients testés avec ces paramètres."]; return s; }
+    const t = a.lignes[0];
+    s.resume = [`${nomDeLigne(t)} (${joli(t.code)}) arrive en tête : `, ["chiffre", pct(t.pourcentage)], ` des patients testés sont sensibilisés (${effectifs(t)}).`];
+    const parCat = {}; let sansCat = 0;
+    a.lignes.forEach((l) => { if (l.categorie) parCat[l.categorie] = (parCat[l.categorie] || 0) + 1; else sansCat++; });
+    const cats = Object.entries(parCat).sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0]));
+    if (cats.length) {
+      s.conclusion = `Catégories (nomenclature de l'équipe) : ${cats.map(([c, k]) => `${c} ${k}`).join(", ")}${sansCat ? `, non précisée ${sansCat}` : ""}.`;
+    }
+    s.actions = [[`Explorer ${nomDeLigne(t)}`, allerA(t.code), false], ["Afficher le tableau", "tableau"],
+      ...(n < 10 && p.nombre_demande !== null ? [["Voir le Top 10", () => envoyer("Quels sont les dix allergènes les plus fréquents parmi les patients testés ?"), true]] : [])];
+    s.detail = `${nomDeLigne(t)} arrive en tête avec ${pct(t.pourcentage)}.`;
+    return s;
+  }
+  if (a && a.type === "prevalence_allergene") {
+    const l = a.ligne, nom = nomDeLigne(l);
+    Object.assign(s, { type: "prevalence", ligne: l, titre: nom, sousTitre: l.libelle ? joli(l.code) : "" });
+    s.resume = [["chiffre", pct(l.pourcentage)], ` des patients testés sont sensibilisés à ${nom}${l.libelle ? ` (${joli(l.code)})` : ""} : ${effectifs(l)}.`];
+    s.parametres = puces(a, [`Mesuré sur : ${a.puces_qui_le_mesurent.map(nomPuce).join(", ") || "aucune puce"}`]);
+    s.limites = a.limites; s.methode = methode(a);
+    s.methode.push(["Exclus", `${nombre(l.non_testes_exclus)} non testés, ${nombre(l.mesures_invalides_exclues)} mesures invalides`]);
+    if (l.categorie) s.conclusion = `${joli(l.code)} : ${nom}, catégorie « ${l.categorie} » (nomenclature de l'équipe).`;
+    s.actions = [[`Explorer ${nom}`, allerA(l.code), false],
+      ["Détail par puce", allerA(l.code), false]];
+    s.detail = `${pct(l.pourcentage)} pour ${nom}.`;
+    return s;
+  }
+  if (a) {  // un type structuré que cette page ne connaît pas : affichage générique, sans interprétation
+    Object.assign(s, { type: "inconnu", titre: "Résultat structuré", resume: [`Résultat de type « ${a.type} », que cet affichage ne sait pas encore présenter. Ses valeurs sont listées ci-dessous.`], brut: a });
+    return s;
+  }
+  // Pas de résultat structuré : la réponse de l'agent, telle qu'il l'a écrite, sans unité devinée
+  s.titre = "Réponse de l'agent";
+  s.resume = [typeof r.valeur === "number" ? "Valeur rendue : " : "", typeof r.valeur === "number" ? ["chiffre", nombre(r.valeur)] : String(r.valeur ?? "")];
+  s.note = r.analyse === undefined
+    ? "Réponse enregistrée avant les résultats structurés : affichée telle que l'agent l'a écrite."
+    : "Aucun résultat chiffré structuré pour cette question : réponse affichée telle que l'agent l'a écrite.";
+  s.detail = "Ma réponse est à droite.";
+  return s;
+}
+
+// Petits composants d'affichage
+function paragraphe(morceaux, classe) {
+  const p = el("p", classe);
+  for (const m of morceaux) p.appendChild(Array.isArray(m) ? el("span", "chiffre-cle", m[1]) : document.createTextNode(m));
+  return p;
+}
+const CHEVRON = '<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+function accordeon(libelle, icone, contenu, classe) {
+  const z = el("div", "accordeon " + (classe || "")), b = el("button", "accordeon-tete");
+  b.type = "button"; b.setAttribute("aria-expanded", "false");
+  b.innerHTML = icone; b.appendChild(el("span", "", libelle)); b.insertAdjacentHTML("beforeend", CHEVRON);
+  const corps = el("div", "accordeon-corps"), interieur = el("div", "accordeon-contenu");
+  interieur.append(...contenu); corps.appendChild(interieur);
+  b.onclick = () => { const o = z.classList.toggle("ouvert"); b.setAttribute("aria-expanded", String(o)); };
+  z.append(b, corps); return z;
+}
+function definitions(paires) { const dl = el("dl", "methode-liste"); paires.forEach(([k, v]) => dl.append(el("dt", "", k), el("dd", "", v))); return dl; }
+// Jauge de 0 à 100 % : la valeur, et la bande de son intervalle de confiance
+function jauge(l) {
+  const z = el("div", "jauge"), piste = el("div", "jauge-piste"), barre = el("i"), bande = el("b");
+  barre.style.width = "0%"; piste.append(barre);
+  if (l.intervalle_confiance_95) { const [bas, haut] = l.intervalle_confiance_95; bande.style.left = bas + "%"; bande.style.width = Math.max(0.6, haut - bas) + "%"; piste.append(bande); }
+  requestAnimationFrame(() => { barre.style.width = (l.pourcentage || 0) + "%"; });
+  const echelle = el("div", "jauge-echelle"); ["0 %", "25 %", "50 %", "75 %", "100 %"].forEach((t) => echelle.appendChild(el("span", "", t)));
+  z.append(piste, echelle);
+  if (l.intervalle_confiance_95) z.appendChild(el("p", "jauge-legende", `La bande claire : ${intervalle(l)}. Plus elle est étroite, plus le pourcentage est précis.`));
+  return z;
+}
+const ICO_METHODE = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/></svg>';
+const ICO_TECH = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg>';
+
+// L'affichage, dans l'ordre de lecture : titre, réponse courte, paramètres, visualisation, à retenir, limites, actions, puis replié.
+let retourRepos = 0;
+function messageAgent(question, r) {
+  const s = structurer(question, r);
+  const { c, corps, outils } = carte(r.etat);
+  c.classList.add("reponse-ia");
+  const titre = el("h3", "titre-reponse", s.titre);
+  if (s.sousTitre) titre.appendChild(el("small", "", s.sousTitre));
+  corps.append(titre, paragraphe(s.resume, "resume"));
+  if (s.parametres.length) { const z = el("div", "parametres"); s.parametres.forEach((t) => z.appendChild(el("span", "", t))); corps.appendChild(z); }
+  if (s.type === "classement" && s.lignes.length) {
+    const visu = el("div", "visu");
+    const max = Math.min(100, Math.ceil((s.lignes[0].pourcentage + 2) / 10) * 10);
+    const graphe = graphiqueBarres(s.lignes.map((l) => ({ titre: `${l.rang}. ${nomDeLigne(l)}`, sous: `${joli(l.code)} · ${nombre(l.patients_positifs)} / ${nombre(l.patients_testes)}`, valeur: l.pourcentage, l })),
+      { max, surClic: (x) => allerA(x.l.code)(), infos: (b, x) => { b.appendChild(el("b", "", `${nomDeLigne(x.l)} · ${joli(x.l.code)}`)); b.appendChild(document.createTextNode(`${pct(x.l.pourcentage)} · ${effectifs(x.l)}`)); b.appendChild(el("br")); b.appendChild(document.createTextNode(intervalle(x.l))); } });
+    const table = tableau([["Rang"], ["Allergène"], ["Code"], ["Catégorie"], ["Positifs", 1], ["Testés", 1], ["%", 1], ["IC 95 %", 1]],
+      s.lignes.map((l) => [String(l.rang), nomDeLigne(l), joli(l.code), l.categorie || "non précisée", nombre(l.patients_positifs), nombre(l.patients_testes), pct(l.pourcentage),
+        l.intervalle_confiance_95 ? `${virgule(l.intervalle_confiance_95[0])}–${virgule(l.intervalle_confiance_95[1])}` : "—"]));
+    table.hidden = true; visu.append(graphe, table); corps.appendChild(visu); s.tableau = { graphe, table };
+  }
+  if (s.type === "prevalence" && s.ligne.patients_testes) corps.appendChild(jauge(s.ligne));
+  if (s.type === "inconnu") {
+    const sur = Object.entries(s.brut).filter(([, v]) => v === null || ["string", "number", "boolean"].includes(typeof v));
+    corps.appendChild(definitions(sur.map(([k, v]) => [k, String(v)])));
+  }
+  if (s.note) corps.appendChild(el("p", "non-disponible", s.note));
+  if (s.conclusion) corps.appendChild(el("p", "a-retenir", s.conclusion));
+  if (s.limites.length) { const ul = el("ul", "limites"); s.limites.forEach((t) => ul.appendChild(el("li", "", t))); corps.appendChild(ul); }
+  if (s.actions.length) {
+    const z = el("div", "actions-reponse");
+    for (const [libelle, action, paye] of s.actions) {
+      const b = el("button", "action", libelle); b.type = "button";
+      if (action === "tableau") {
+        b.onclick = () => { const voir = s.tableau.table.hidden; s.tableau.table.hidden = !voir; s.tableau.graphe.hidden = voir; b.firstChild.textContent = voir ? "Afficher le graphique" : "Afficher le tableau"; };
+      } else { b.onclick = action; if (paye !== undefined) b.appendChild(el("i", paye ? "paye" : "", paye ? "1 question" : "gratuit")); }
+      z.appendChild(b);
+    }
+    corps.appendChild(z);
+  }
+  // Replié : la méthode (le calcul tel qu'il a été fait, puis l'explication de l'agent), puis les détails techniques
+  const plis = el("div", "plis"), contenu = [];
+  if (s.methode.length) contenu.push(definitions(s.methode));
+  if (s.justification) contenu.push(el("p", "", s.justification), el("p", "non-disponible", "Ci-dessus, l'explication rédigée par l'agent."));
+  if (contenu.length) plis.appendChild(accordeon("Méthode", ICO_METHODE, contenu));
+  const tech = [];
+  if (r.mesures && r.mesures.length) { const z = el("div", "mesures"); r.mesures.forEach((t) => z.appendChild(el("span", "", t))); tech.push(z); }
+  (r.etapes || []).forEach((e, n) => {
+    const bloc = el("div", "etape"); bloc.appendChild(el("b", "", `Étape ${n + 1}`));
+    bloc.appendChild(el("pre", "", e.code || "")); if (e.resultat) bloc.appendChild(el("pre", "res", e.resultat)); tech.push(bloc);
+  });
+  if (!(r.etapes || []).length && r.etat === "reponse" && r.analyse) tech.push(el("p", "non-disponible", "Aucune étape de modèle : réponse calculée directement par les outils de l'équipe."));
+  if (tech.length) plis.appendChild(accordeon("Détails techniques", ICO_TECH, tech, "technique"));
+  if (plis.childNodes.length) corps.appendChild(plis);
+  outils.append(
+    icone("copier", "Copier la réponse", () => { navigator.clipboard?.writeText(`${typeof r.valeur === "number" || r.valeur ? r.valeur + " — " : ""}${r.texte}`).then(() => toast("Réponse copiée"), () => toast("Copie impossible")); }),
+    icone("reposer", "Reposer la question", () => envoyer(question)),
+  );
+  enBas();
+  // L'avatar : un résumé très court, jamais la réponse entière ; puis il revient au repos
+  humeur(REACTION[r.etat] || "sad", r.etat);
+  if (r.etat === "reponse") { const mas = $("mascotte"); mas.classList.remove("content"); void mas.offsetWidth; mas.classList.add("content"); }
+  dire(s.bulle, { detail: s.detail });
+  clearTimeout(retourRepos);
+  retourRepos = setTimeout(() => { if (!occupe) { humeur("idle", "attente"); $("mascotte").classList.remove("content"); } }, 6000);
+}
+function majCompteurs() {
+  $("c-questions").textContent = stats.questions; $("c-reponses").textContent = stats.reponses;
+  $("c-abstentions").textContent = stats.abstentions; $("c-cout").textContent = dollars(stats.cout);
+}
+function statut(texte, enCours) { $("statut-texte").textContent = texte; $("statut").classList.toggle("occupe", enCours); }
+async function envoyer(texte) {
+  texte = (texte ?? champ.value).trim();
+  if (!texte || occupe) return;
+  montrer("assistant");
+  occupe = true; champ.value = ""; ajuster(); fermerCompletion(); statut("Analyse…", true);
+  viderSiAccueil(); messageMoi(texte); humeur("thinking", "reflechit"); clearTimeout(retourRepos);
+  const fin = attente();
+  let r;
+  try {
+    const rep = await fetch("/question", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: texte }) });
+    r = await rep.json();
+  } catch (e) {
+    r = { etat: "erreur", valeur: null, texte: "Le serveur ne répond pas. Réessaie dans un instant.", mesures: [], etapes: [], cout: 0 };
+  }
+  fin(); occupe = false; messageAgent(texte, r); enregistrerTour(texte, r);
+  stats.questions++; stats.cout += r.cout || 0;
+  if (r.etat === "reponse") stats.reponses++; if (r.etat === "abstention") stats.abstentions++;
+  majCompteurs(); statut("Prêt", false); ajuster(); champ.focus();
+}
+
+/* ---- Autocomplétion : codes, et noms courants (« arachide » propose Ara_h_1, Ara_h_2…) ---- */
+let propositions = [], choix = 0;
+function motCourant() { const avant = champ.value.slice(0, champ.selectionStart); const m = avant.match(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9_.\-]{1,})$/); return m ? m[1] : ""; }
+function ouvrirCompletion() {
+  const mot = motCourant(); const z = $("complete"); const q = simplifier(mot);
+  propositions = [];
+  if (mot.length >= 2) {
+    for (const c of COLONNES.dosage) {
+      const parCode = simplifier(c).startsWith(q); const parNom = q.length >= 3 && simplifier(nomDe(c)).includes(q);
+      if ((parCode || parNom) && c !== mot) propositions.push([c, nomDe(c) || "allergène"]);
+    }
+    for (const c of COLONNES.clinique) if (simplifier(c).startsWith(q) && c !== mot) propositions.push([c, "clinique"]);
+  }
+  propositions = propositions.slice(0, 8); z.innerHTML = ""; choix = 0;
+  if (!propositions.length) { z.classList.remove("ouvert"); return; }
+  propositions.forEach(([c, type], n) => {
+    const b = el("button", n === choix ? "choisi" : ""); b.setAttribute("role", "option");
+    b.append(el("span", "mono", c), el("small", "", type));
+    b.onmousedown = (e) => { e.preventDefault(); completer(n); }; z.appendChild(b);
+  });
+  z.classList.add("ouvert");
+}
+function fermerCompletion() { $("complete").classList.remove("ouvert"); propositions = []; }
+function completer(n) {
+  const mot = motCourant(); const fin = champ.selectionStart;
+  champ.value = champ.value.slice(0, fin - mot.length) + propositions[n][0] + " " + champ.value.slice(fin);
+  const pos = fin - mot.length + propositions[n][0].length + 1; champ.setSelectionRange(pos, pos);
+  fermerCompletion(); ajuster();
+}
+function marquer() { [...$("complete").children].forEach((b, n) => b.classList.toggle("choisi", n === choix)); }
+function ajuster() { champ.style.height = "auto"; champ.style.height = Math.min(champ.scrollHeight, 150) + "px"; bouton.disabled = occupe || !champ.value.trim(); }
+champ.addEventListener("input", () => { ajuster(); ouvrirCompletion(); });
+champ.addEventListener("blur", () => setTimeout(fermerCompletion, 100));
+champ.addEventListener("keydown", (e) => {
+  if (propositions.length) {
+    if (e.key === "ArrowDown") { e.preventDefault(); choix = (choix + 1) % propositions.length; marquer(); return; }
+    if (e.key === "ArrowUp") { e.preventDefault(); choix = (choix - 1 + propositions.length) % propositions.length; marquer(); return; }
+    if (e.key === "Tab") { e.preventDefault(); completer(choix); return; }
+    if (e.key === "Escape") { fermerCompletion(); return; }
+  }
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); envoyer(); }
+});
+bouton.onclick = () => envoyer();
+/* ============================================================
+   Historique des conversations
+   Gardé dans ce navigateur (localStorage) : rien n'est envoyé ailleurs.
+   Une conversation = ses questions et les réponses telles que la page les a reçues.
+   ============================================================ */
+const CLE_HISTO = "allergylab.historique";
+let conversations = [], courante = null; // courante : la conversation où s'ajoute la prochaine question
+try { conversations = JSON.parse(localStorage.getItem(CLE_HISTO)) || []; } catch (e) { conversations = []; }
+function sauverHisto() {
+  // Si le navigateur manque de place, on garde seulement les conversations les plus récentes.
+  for (let n = conversations.length; n > 0; n = Math.floor(n / 2)) {
+    try { localStorage.setItem(CLE_HISTO, JSON.stringify(conversations.slice(0, n))); return; } catch (e) { /* on réessaie avec moins */ }
+  }
+}
+function enregistrerTour(question, r) {
+  let c = conversations.find((x) => x.id === courante);
+  if (!c) {
+    c = { id: "c" + Date.now(), titre: question.length > 52 ? question.slice(0, 50).trimEnd() + "…" : question, quand: Date.now(), tours: [] };
+    courante = c.id;
+  }
+  c.tours.push({ question, r }); c.quand = Date.now();
+  conversations = [c, ...conversations.filter((x) => x !== c)].slice(0, 50); // la plus récente en tête, 50 au plus
+  sauverHisto(); dessinerHisto();
+}
+function groupeDe(quand) {
+  const jours = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(quand).setHours(0, 0, 0, 0)) / 864e5);
+  return jours <= 0 ? "Aujourd'hui" : jours === 1 ? "Hier" : jours <= 7 ? "7 derniers jours" : jours <= 30 ? "30 derniers jours" : "Plus ancien";
+}
+function dessinerHisto() {
+  const q = simplifier($("histo-q").value.trim()), z = $("histo-liste");
+  z.innerHTML = "";
+  const liste = conversations.filter((c) => !q || simplifier(c.titre).includes(q) || c.tours.some((t) => simplifier(t.question).includes(q)));
+  if (!liste.length) { z.appendChild(el("p", "sb-empty", conversations.length ? "Aucune conversation trouvée." : "Aucune conversation pour l'instant. Vos questions s'enregistreront ici.")); return; }
+  let groupe = "";
+  for (const c of liste) {
+    const g = groupeDe(c.quand);
+    if (g !== groupe) { groupe = g; z.appendChild(el("div", "sb-group", g)); }
+    const b = el("button", "sb-item"); b.type = "button"; b.title = c.titre;
+    if (c.id === courante) b.setAttribute("aria-current", "true");
+    b.appendChild(el("span", "sb-item-title", c.titre));
+    const meta = el("span", "sb-item-meta"), points = el("span", "dots");
+    c.tours.slice(0, 6).forEach((t) => { const p = el("span", "sb-dot"); p.dataset.kind = t.r.etat; points.appendChild(p); });
+    const d = new Date(c.quand), recent = g === "Aujourd'hui" || g === "Hier";
+    const heure = recent ? d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+    meta.append(points, document.createTextNode(`${c.tours.length} question${c.tours.length > 1 ? "s" : ""}`), el("span", "time", heure));
+    b.appendChild(meta); b.onclick = () => ouvrirConversation(c.id); z.appendChild(b);
+  }
+}
+// Réaffiche une ancienne conversation telle quelle : aucune question n'est reposée, rien n'est payé.
+function ouvrirConversation(id) {
+  const c = conversations.find((x) => x.id === id);
+  if (!c || occupe) return;
+  montrer("assistant"); fil.innerHTML = ""; courante = id;
+  c.tours.forEach((t) => { messageMoi(t.question); messageAgent(t.question, t.r); });
+  ouvrirHisto(false);
+}
+function ouvrirHisto(ouvert) {
+  document.body.classList.toggle("histo-ouvert", ouvert);
+  $("btn-historique").setAttribute("aria-expanded", String(ouvert));
+  $("voile-histo").hidden = !ouvert;
+  if (ouvert) { dessinerHisto(); $("histo-q").focus(); }
+}
+$("btn-historique").onclick = () => ouvrirHisto(!document.body.classList.contains("histo-ouvert"));
+$("histo-fermer").onclick = () => ouvrirHisto(false);
+$("voile-histo").onclick = () => ouvrirHisto(false);
+$("histo-q").oninput = dessinerHisto;
+$("histo-nouvelle").onclick = () => { if (!occupe) { courante = null; montrer("assistant"); vide(); ouvrirHisto(false); } };
+$("histo-effacer").onclick = () => {
+  if (!confirm("Effacer tout l'historique enregistré dans ce navigateur ?")) return;
+  conversations = []; courante = null;
+  try { localStorage.removeItem(CLE_HISTO); } catch (e) { /* rien à effacer */ }
+  dessinerHisto();
+};
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("histo-ouvert")) ouvrirHisto(false); });
+$("nouveau").onclick = () => { if (!occupe) { courante = null; montrer("assistant"); vide(); } };
+$("mascotte").onclick = cliquerNuage;
+$("mascotte").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cliquerNuage(); } };
+lueurs(); vide(); champ.focus(); chargerNuage();
+
+// Le halo suit légèrement la souris quand elle passe sur le paysage (quelques pixels, jamais plus).
+(() => {
+  const paysage = $("paysage"), nuage = $("mascotte"); let image = 0;
+  paysage.addEventListener("pointermove", (e) => {
+    if (image) return;
+    image = requestAnimationFrame(() => {
+      image = 0;
+      const r = nuage.getBoundingClientRect(), borne = (v) => Math.max(-1, Math.min(1, v));
+      nuage.style.setProperty("--gx", borne((e.clientX - r.left - r.width / 2) / r.width) * 16 + "px");
+      nuage.style.setProperty("--gy", borne((e.clientY - r.top - r.height / 2) / r.height) * 12 + "px");
+    });
+  });
+  paysage.addEventListener("pointerleave", () => { nuage.style.setProperty("--gx", "0px"); nuage.style.setProperty("--gy", "0px"); });
+})();
+</script>
+</body>
+</html>

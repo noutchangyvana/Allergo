@@ -1,6 +1,7 @@
 """Point d'entrée de l'API pour un hébergeur (Vercel) : il expose l'objet `app`.
 
-En local, préférer `uv run allergolab servir`, qui fait la même chose.
+L'API du moteur, plus la page web de l'équipe à l'adresse « / ».
+En local :  uv run uvicorn app:app --port 8000   puis ouvrir http://127.0.0.1:8000
 """
 
 import os
@@ -18,8 +19,11 @@ if os.getenv("VERCEL"):
 from allergolab.api import creer_application  # noqa: E402
 from allergolab.configuration import Configuration  # noqa: E402
 from allergolab.service import Service  # noqa: E402
+from allergolab.vitrine.routes import ajouter_page  # noqa: E402
 
 service = Service(Configuration.environnement())
 app = creer_application(service=service)
 # L'hébergeur peut ne pas déclencher le démarrage de FastAPI : le service est déjà prêt.
 app.state.service = service
+# La page web de l'équipe (Assistant, Explorer, Méthode) à l'adresse « / ».
+ajouter_page(app, service)

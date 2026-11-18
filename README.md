@@ -88,6 +88,16 @@ Le chargement respecte le séparateur `;`, les virgules décimales des dosages e
 
 Le catalogue distingue lecture numérique et signification quantitative. Les codes cliniques ne deviennent pas automatiquement des mesures continues. `Age`, `Age_of_onsets` et le bloc dosage sont les candidats quantitatifs par défaut, à condition que leur lecture soit effectivement numérique ; toute autre mesure demande une définition explicite. Aucune unité, signification des codes, définition de sévérité ou seuil clinique n'est inventé. La copie locale du fichier Excel reste à lire et valider par l'équipe ; elle n'est pas interprétée automatiquement et son statut est documenté dans `donnees/README.md`. Voir `configuration/metadata.exemple.json`.
 
+## Page web
+
+L'adresse `/` sert la page de l'équipe 4 : l'Assistant, l'onglet Explorer et la Méthode. Le code se trouve dans `src/allergolab/vitrine/`, branché par `app.py`.
+
+- **Explorer** : les calculs des outils de l'équipe (seuil 0,3, code 9 « non renseigné », minimum de 30 patients testés), sans modèle et sans coût.
+- **Assistant** : deux formulations sont calculées comme l'Explorer (« Quel pourcentage des patients testés est sensibilisé à Ara_h_2 ? », « Quels sont les cinq allergènes les plus fréquents parmi les patients testés ? ») ; les autres passent par le moteur. Sans modèle, seules les formulations simples reçoivent une réponse.
+- La page publique n'utilise jamais le modèle, sauf si `ALLERGOLAB_PAGE_MODELE=true` est défini en plus de `ALLERGOLAB_MODELE_ACTIF=true`. Les questions sont limitées à 30 par minute et par instance.
+
+En local : `uv run uvicorn app:app --port 8000`, puis ouvrir http://127.0.0.1:8000.
+
 ## API pour le frontend
 
 | Route | Usage |
