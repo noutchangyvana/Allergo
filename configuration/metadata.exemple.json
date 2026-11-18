@@ -1,0 +1,18 @@
+{
+  "Age": {
+    "description": "Âge tel que fourni ; confirmer définition et unité dans le dictionnaire officiel.",
+    "quantitative": true,
+    "unite": null
+  },
+  "Patient_ID": {
+    "description": "Identifiant individuel, jamais exposé par les outils.",
+    "protegee": true,
+    "quantitative": false
+  },
+  "Ara_h_2": {
+    "description": "Dosage Ara_h_2 ; vérifier unité et seuil par type de puce avant interprétation.",
+    "quantitative": true,
+    "unite": null
+  }
+}
+

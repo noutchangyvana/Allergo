@@ -1,0 +1,38 @@
+[project]
+name = "allergolab-agent"
+version = "0.1.0"
+description = "Backend scientifique autonome, calculé et vérifiable pour ALLERGO LAB"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pandas>=2.2,<3",
+    "scipy>=1.14,<2",
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.32,<1",
+    "smolagents[litellm]==1.26.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "httpx>=0.27,<1", "ruff>=0.9,<1"]
+
+[project.scripts]
+allergolab = "allergolab.cli:main"
+kit = "allergolab.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.9,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "allergolab"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore:.*ReadOnly.*:UserWarning"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+

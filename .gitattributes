@@ -1,0 +1,6 @@
+# Fichiers texte : git les range avec des fins de ligne LF, sur les trois systèmes.
+* text=auto eol=lf
+
+# Les fichiers de donnees/ sont ceux que leur éditeur a publiés.
+# binary : git ne convertit jamais leurs fins de ligne, sinon leur empreinte change.
+donnees/** binary
